@@ -13,10 +13,6 @@ from binder_api import AntibodyBinder
 from developability_api import DevelopabilityRanker
 
 
-# ============================================================
-# Paths
-# ============================================================
-
 APP_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = APP_DIR / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,10 +31,6 @@ COMBINED_DEV_CSV_PATH = OUTPUT_DIR / "combined_developability_reference.csv"
 FULL_PIPELINE_CSV_PATH = OUTPUT_DIR / "full_pipeline_results.csv"
 
 
-# ============================================================
-# Model checkpoints
-# ============================================================
-
 GEN_MODEL_PATH = hf_hub_download(
     repo_id="Fanxu-alt/antibody-models",
     filename="conditional_cvae_finetune.pt",
@@ -50,16 +42,8 @@ BINDER_MODEL_PATH = hf_hub_download(
 )
 
 
-# ============================================================
-# Developability reference construction
-# ============================================================
-
 def build_combined_developability_csv() -> Path:
-    """
-    filtered_Label_1.csv already has Target for SARS-CoV-2 variants.
-    The additional antigen CSV files do not have Target, so we add Target
-    based on the file name / antigen name and then combine everything.
-    """
+
     if not BASE_DEV_CSV_PATH.exists():
         raise FileNotFoundError(f"Missing base developability file: {BASE_DEV_CSV_PATH}")
 
@@ -78,12 +62,11 @@ def build_combined_developability_csv() -> Path:
         df = pd.read_csv(csv_path)
         df["Target"] = target_name
 
-        # Make additional files compatible with filtered_Label_1.csv
+   
         for col in base_df.columns:
             if col not in df.columns:
                 df[col] = pd.NA
 
-        # Keep exactly the same columns as the base file
         df = df[base_df.columns]
         dfs.append(df)
 
@@ -98,20 +81,12 @@ def build_combined_developability_csv() -> Path:
     return COMBINED_DEV_CSV_PATH
 
 
-# ============================================================
-# Load models
-# ============================================================
-
 generator = AntibodyGenerator(GEN_MODEL_PATH)
 binder = AntibodyBinder(BINDER_MODEL_PATH)
 
 DEV_CSV_PATH = build_combined_developability_csv()
 ranker = DevelopabilityRanker(str(DEV_CSV_PATH))
 
-
-# ============================================================
-# FastAPI app
-# ============================================================
 
 app = FastAPI(title="SPACE Antibody Design API", version="0.1.0")
 
@@ -123,10 +98,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ============================================================
-# Request schemas
-# ============================================================
 
 class GenerateRequest(BaseModel):
     antigen: str
@@ -153,10 +124,6 @@ class FullPipelineRequest(BaseModel):
     temperature: float = 1.0
     deduplicate: bool = True
 
-
-# ============================================================
-# Utility functions
-# ============================================================
 
 def clean_sequence(seq: str) -> str:
     return str(seq or "").strip().upper().replace(" ", "").replace("\n", "")
@@ -197,10 +164,7 @@ def detect_generated_cdr3_column(df: pd.DataFrame) -> str:
 
 
 def normalize_target_name(target_name: str) -> str:
-    """
-    Keep SARS-CoV-2 variant names as provided by filtered_Label_1.csv.
-    For newly added antigen files, use lowercase target names.
-    """
+  
     target_name = str(target_name or "").strip()
 
     alias_map = {
@@ -222,10 +186,6 @@ def safe_float(value):
     except Exception:
         return None
 
-
-# ============================================================
-# Routes
-# ============================================================
 
 @app.get("/")
 def home():
@@ -381,14 +341,10 @@ def full_pipeline(req: FullPipelineRequest):
 
         merged = bind_df.merge(dev_df, on="candidate_name", how="left")
 
-        # Convert boolean-like values consistently
+   
         if "hard_filter_pass" in merged.columns:
             merged["hard_filter_pass"] = merged["hard_filter_pass"].astype(bool)
 
-        # Ranking strategy:
-        # 1. Candidates passing hard developability filters first
-        # 2. Higher binding probability first
-        # 3. Lower developability risk score first
         sort_cols = []
         ascending = []
 
@@ -414,8 +370,6 @@ def full_pipeline(req: FullPipelineRequest):
             merged = merged.drop(columns=["rank"])
 
         merged.insert(0, "rank", range(1, len(merged) + 1))
-
-        # Save CSV for download
         merged.to_csv(FULL_PIPELINE_CSV_PATH, index=False)
 
         return {
@@ -442,10 +396,7 @@ def download_full_pipeline_results():
         media_type="text/csv",
         filename="full_pipeline_results.csv",
     )
-# ============================================================
-# Developability-only scoring API
-# Paste this at the bottom of backend/main.py
-# ============================================================
+
 
 class DevelopabilityCandidate(BaseModel):
     candidate_name: str
@@ -565,11 +516,6 @@ def download_developability_results():
         media_type="text/csv",
         filename="developability_results.csv",
     )
-# ============================================================
-# LLM-guided full pipeline Agent API
-# Paste this at the bottom of backend/main.py
-# Requires: agent_api.py with AntibodyDesignAgent
-# ============================================================
 
 from agent_api import AntibodyDesignAgent
 
