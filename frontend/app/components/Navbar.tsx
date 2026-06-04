@@ -16,7 +16,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
         <a href="/" className="text-xl font-bold tracking-tight text-slate-950">
-          SPACE Antibody Design
+          Antibody Design
         </a>
 
         <div className="flex items-center gap-6">
