@@ -1,0 +1,700 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import SectionTitle from "../components/SectionTitle";
+import {
+  API_BASE,
+  DEFAULT_ANTIGEN,
+  DEFAULT_CDRH3,
+  DEFAULT_HEAVY,
+} from "../components/config";
+
+type RecordRow = Record<string, unknown>;
+
+type ChatMessage = {
+  user: string;
+  assistant: string;
+};
+
+const EXAMPLE_TARGET = "SARS-CoV2_Beta";
+
+function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
+  if (rows.length === 0) return;
+
+  const headers = Object.keys(rows[0]);
+  const csv = [
+    headers.join(","),
+    ...rows.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header] ?? "";
+          return `"${String(value).replace(/"/g, '""')}"`;
+        })
+        .join(",")
+    ),
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadText(filename: string, text: string) {
+  const blob = new Blob([text || ""], { type: "text/plain;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function SimpleTable({
+  rows,
+  maxRows = 20,
+}: {
+  rows: RecordRow[];
+  maxRows?: number;
+}) {
+  if (!rows || rows.length === 0) {
+    return <div className="p-6 text-sm text-slate-500">No records yet.</div>;
+  }
+
+  const visibleRows = rows.slice(0, maxRows);
+  const headers = Object.keys(visibleRows[0]);
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse bg-white text-sm">
+        <thead className="bg-slate-50 text-left">
+          <tr>
+            {headers.map((header) => (
+              <th key={header} className="border-b p-3">
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+          {visibleRows.map((row, index) => (
+            <tr key={index} className="hover:bg-slate-50">
+              {headers.map((header) => (
+                <td
+                  key={header}
+                  className="max-w-[360px] truncate border-b p-3"
+                  title={String(row[header] ?? "")}
+                >
+                  {String(row[header] ?? "")}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {rows.length > maxRows && (
+        <div className="border-t bg-slate-50 p-3 text-sm text-slate-500">
+          Showing first {maxRows} of {rows.length} records.
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AgentPage() {
+  const [targets, setTargets] = useState<string[]>([]);
+  const [targetsLoading, setTargetsLoading] = useState(true);
+  const [targetsError, setTargetsError] = useState("");
+
+  const [antigenName, setAntigenName] = useState("");
+  const [antigenSequence, setAntigenSequence] = useState(DEFAULT_ANTIGEN);
+  const [heavyTemplate, setHeavyTemplate] = useState(DEFAULT_HEAVY);
+  const [cdrh3Template, setCdrh3Template] = useState(DEFAULT_CDRH3);
+
+  const [targetCount, setTargetCount] = useState(10);
+  const [minBindingProbability, setMinBindingProbability] = useState(0.8);
+  const [maxRounds, setMaxRounds] = useState(4);
+  const [userRequest, setUserRequest] = useState(
+    "Please find antibody candidates with high predicted binding probability and good developability."
+  );
+
+  const [summary, setSummary] = useState("");
+  const [acceptedRecords, setAcceptedRecords] = useState<RecordRow[]>([]);
+  const [historyRecords, setHistoryRecords] = useState<RecordRow[]>([]);
+  const [acceptedDownloadUrl, setAcceptedDownloadUrl] = useState("");
+  const [historyDownloadUrl, setHistoryDownloadUrl] = useState("");
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  const [loading, setLoading] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [chatError, setChatError] = useState("");
+
+  useEffect(() => {
+    async function loadTargets() {
+      setTargetsLoading(true);
+      setTargetsError("");
+
+      try {
+        const response = await fetch(`${API_BASE}/targets`);
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Failed to load targets: ${response.status} ${text}`);
+        }
+
+        const data = await response.json();
+        const loadedTargets = data.targets || [];
+
+        if (!Array.isArray(loadedTargets) || loadedTargets.length === 0) {
+          throw new Error("Backend returned an empty target list.");
+        }
+
+        const uniqueTargets = Array.from(
+          new Set(loadedTargets.map((target: unknown) => String(target)))
+        );
+
+        const sortedTargets = uniqueTargets.sort((a, b) => {
+          const aIsSars = a.toLowerCase().includes("sars");
+          const bIsSars = b.toLowerCase().includes("sars");
+
+          if (aIsSars && !bIsSars) return -1;
+          if (!aIsSars && bIsSars) return 1;
+
+          return a.localeCompare(b);
+        });
+
+        setTargets(sortedTargets);
+
+        if (sortedTargets.includes(EXAMPLE_TARGET)) {
+          setAntigenName(EXAMPLE_TARGET);
+        } else {
+          setAntigenName(sortedTargets[0]);
+        }
+      } catch (err) {
+        setTargetsError(String(err));
+        setTargets([]);
+        setAntigenName("");
+      } finally {
+        setTargetsLoading(false);
+      }
+    }
+
+    loadTargets();
+  }, []);
+
+  function loadExample() {
+    setAntigenName(
+      targets.includes(EXAMPLE_TARGET)
+        ? EXAMPLE_TARGET
+        : targets.length > 0
+        ? targets[0]
+        : ""
+    );
+    setAntigenSequence(DEFAULT_ANTIGEN);
+    setHeavyTemplate(DEFAULT_HEAVY);
+    setCdrh3Template(DEFAULT_CDRH3);
+    setTargetCount(10);
+    setMinBindingProbability(0.8);
+    setMaxRounds(4);
+    setUserRequest(
+      "Please find 10 antibody candidates with high predicted binding probability and good developability."
+    );
+    setSummary("");
+    setAcceptedRecords([]);
+    setHistoryRecords([]);
+    setAcceptedDownloadUrl("");
+    setHistoryDownloadUrl("");
+    setChatHistory([]);
+    setError("");
+    setChatError("");
+  }
+
+  function downloadAllAgentResults() {
+    const metadata = [
+      {
+        target_antigen_name: antigenName,
+        target_count: targetCount,
+        min_binding_probability: minBindingProbability,
+        max_rounds: maxRounds,
+        user_request: userRequest,
+        summary,
+        accepted_count: acceptedRecords.length,
+        history_count: historyRecords.length,
+      },
+    ];
+
+    downloadCsv("agent_run_metadata.csv", metadata);
+
+    if (acceptedRecords.length > 0) {
+      downloadCsv("agent_accepted_candidates.csv", acceptedRecords);
+    }
+
+    if (historyRecords.length > 0) {
+      downloadCsv("agent_search_history.csv", historyRecords);
+    }
+
+    if (summary) {
+      downloadText("agent_summary.txt", summary);
+    }
+  }
+
+  async function runAgent() {
+    setLoading(true);
+    setError("");
+    setSummary("");
+    setAcceptedRecords([]);
+    setHistoryRecords([]);
+    setAcceptedDownloadUrl("");
+    setHistoryDownloadUrl("");
+
+    try {
+      if (!antigenName) {
+        throw new Error("Please select a target antigen name.");
+      }
+
+      if (!antigenSequence.trim()) {
+        throw new Error("Please provide an antigen sequence.");
+      }
+
+      if (!heavyTemplate.trim()) {
+        throw new Error("Please provide a heavy-chain template.");
+      }
+
+      if (!cdrh3Template.trim()) {
+        throw new Error("Please provide a template CDRH3.");
+      }
+
+      const response = await fetch(`${API_BASE}/agent/run`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          antigen_name: antigenName,
+          antigen_sequence: antigenSequence,
+          heavy_template: heavyTemplate,
+          cdrh3_template: cdrh3Template,
+          target_count: targetCount,
+          min_binding_probability: minBindingProbability,
+          max_rounds: maxRounds,
+          user_request: userRequest,
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`API error: ${response.status} ${text}`);
+      }
+
+      const data = await response.json();
+
+      setSummary(data.summary || "");
+      setAcceptedRecords(data.accepted_records || []);
+      setHistoryRecords(data.history_records || []);
+      setAcceptedDownloadUrl(data.accepted_download_url || "");
+      setHistoryDownloadUrl(data.history_download_url || "");
+
+      localStorage.setItem(
+        "space_agent_accepted_records",
+        JSON.stringify(data.accepted_records || [])
+      );
+      localStorage.setItem(
+        "space_agent_history_records",
+        JSON.stringify(data.history_records || [])
+      );
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function sendChat() {
+    const message = chatInput.trim();
+
+    if (!message) return;
+
+    setChatLoading(true);
+    setChatError("");
+
+    try {
+      const response = await fetch(`${API_BASE}/agent/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message,
+          antigen_name: antigenName,
+          latest_summary_text: summary,
+          accepted_records: acceptedRecords,
+          history_records: historyRecords,
+          chat_history: chatHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`API error: ${response.status} ${text}`);
+      }
+
+      const data = await response.json();
+
+      setChatHistory([
+        ...chatHistory,
+        {
+          user: message,
+          assistant: data.answer || "",
+        },
+      ]);
+
+      setChatInput("");
+    } catch (err) {
+      setChatError(String(err));
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <Navbar />
+
+      <section className="mx-auto max-w-7xl px-8 py-12">
+        <div className="rounded-3xl border bg-white p-8 shadow-sm">
+          <SectionTitle
+            label="LLM-guided workflow"
+            title="Agent"
+            description="Use a language-model-guided antibody design agent to run a closed-loop workflow: interpret the design goal, generate CDRH3 candidates, predict binding, rank developability, and summarize the run."
+          />
+
+          <div className="grid gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <label className="mb-2 block text-sm font-semibold">
+                Target antigen name
+              </label>
+
+              <select
+                value={antigenName}
+                onChange={(event) => setAntigenName(event.target.value)}
+                disabled={targetsLoading || targets.length === 0}
+                className="w-full rounded-xl border p-3 disabled:bg-slate-100"
+              >
+                {targetsLoading && <option>Loading targets...</option>}
+
+                {!targetsLoading && targets.length === 0 && (
+                  <option>No targets loaded</option>
+                )}
+
+                {!targetsLoading &&
+                  targets.map((target) => (
+                    <option key={target} value={target}>
+                      {target}
+                    </option>
+                  ))}
+              </select>
+
+              <div className="mt-2 text-xs text-slate-500">
+                {targets.length > 0
+                  ? `${targets.length} targets loaded from backend`
+                  : "Targets are loaded from /targets"}
+              </div>
+
+              {targetsError && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {targetsError}
+                </div>
+              )}
+
+              <label className="mb-2 mt-4 block text-sm font-semibold">
+                User design request
+              </label>
+              <textarea
+                className="h-24 w-full rounded-xl border p-4 text-sm"
+                value={userRequest}
+                onChange={(event) => setUserRequest(event.target.value)}
+              />
+
+              <label className="mb-2 mt-4 block text-sm font-semibold">
+                Antigen amino-acid sequence
+              </label>
+              <textarea
+                className="h-36 w-full rounded-xl border p-4 font-mono text-sm"
+                value={antigenSequence}
+                onChange={(event) => setAntigenSequence(event.target.value)}
+              />
+
+              <label className="mb-2 mt-4 block text-sm font-semibold">
+                Heavy-chain template
+              </label>
+              <textarea
+                className="h-32 w-full rounded-xl border p-4 font-mono text-sm"
+                value={heavyTemplate}
+                onChange={(event) => setHeavyTemplate(event.target.value)}
+              />
+
+              <label className="mb-2 mt-4 block text-sm font-semibold">
+                Template CDRH3
+              </label>
+              <input
+                className="w-full rounded-xl border p-3 font-mono text-sm"
+                value={cdrh3Template}
+                onChange={(event) => setCdrh3Template(event.target.value)}
+              />
+
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Accepted candidates
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={targetCount}
+                    onChange={(event) =>
+                      setTargetCount(Number(event.target.value))
+                    }
+                    className="w-full rounded-xl border p-3"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Minimum binding
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={minBindingProbability}
+                    onChange={(event) =>
+                      setMinBindingProbability(Number(event.target.value))
+                    }
+                    className="w-full rounded-xl border p-3"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Max rounds
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={maxRounds}
+                    onChange={(event) =>
+                      setMaxRounds(Number(event.target.value))
+                    }
+                    className="w-full rounded-xl border p-3"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={loadExample}
+                  className="rounded-full border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Load example
+                </button>
+
+                <button
+                  onClick={runAgent}
+                  disabled={loading || targetsLoading || !antigenName}
+                  className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {loading ? "Running agent..." : "Run Agent"}
+                </button>
+
+                <button
+                  onClick={downloadAllAgentResults}
+                  disabled={
+                    !summary &&
+                    acceptedRecords.length === 0 &&
+                    historyRecords.length === 0
+                  }
+                  className="rounded-full bg-slate-900 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  Download All Results
+                </button>
+              </div>
+
+              {error && (
+                <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+                  {error}
+                </div>
+              )}
+            </div>
+
+            <div className="lg:col-span-3">
+              <div className="mb-6 rounded-2xl border bg-slate-50 p-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold">Agent summary</h3>
+
+                  {summary && (
+                    <button
+                      onClick={() => downloadText("agent_summary.txt", summary)}
+                      className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Download TXT
+                    </button>
+                  )}
+                </div>
+
+                {summary ? (
+                  <pre className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                    {summary}
+                  </pre>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    Agent summary will appear here after the run.
+                  </p>
+                )}
+              </div>
+
+              <div className="mb-6 rounded-2xl border">
+                <div className="flex items-center justify-between border-b bg-slate-100 px-4 py-3">
+                  <h3 className="text-xl font-bold">Accepted candidates</h3>
+
+                  <div className="flex gap-2">
+                    {acceptedRecords.length > 0 && (
+                      <button
+                        onClick={() =>
+                          downloadCsv(
+                            "agent_accepted_candidates.csv",
+                            acceptedRecords
+                          )
+                        }
+                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        Download CSV
+                      </button>
+                    )}
+
+                    {acceptedDownloadUrl && (
+                      <a
+                        href={acceptedDownloadUrl}
+                        download
+                        className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                      >
+                        Server CSV
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <SimpleTable rows={acceptedRecords} />
+              </div>
+
+              <div className="rounded-2xl border">
+                <div className="flex items-center justify-between border-b bg-slate-100 px-4 py-3">
+                  <h3 className="text-xl font-bold">Search history</h3>
+
+                  <div className="flex gap-2">
+                    {historyRecords.length > 0 && (
+                      <button
+                        onClick={() =>
+                          downloadCsv(
+                            "agent_search_history.csv",
+                            historyRecords
+                          )
+                        }
+                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        Download CSV
+                      </button>
+                    )}
+
+                    {historyDownloadUrl && (
+                      <a
+                        href={historyDownloadUrl}
+                        download
+                        className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                      >
+                        Server CSV
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <SimpleTable rows={historyRecords} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border bg-white p-8 shadow-sm">
+          <SectionTitle
+            label="Run analysis"
+            title="Agent Q&A"
+            description="Ask the language model to summarize the current run, explain bottlenecks, compare candidates, or suggest the next optimization round."
+          />
+
+          <div className="rounded-2xl border bg-slate-50 p-4">
+            {chatHistory.length > 0 ? (
+              <div className="space-y-4">
+                {chatHistory.map((item, index) => (
+                  <div key={index} className="rounded-xl bg-white p-4 shadow-sm">
+                    <p className="text-sm font-bold text-slate-900">User</p>
+                    <p className="mt-1 text-sm text-slate-700">{item.user}</p>
+
+                    <p className="mt-4 text-sm font-bold text-blue-700">
+                      Assistant
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      {item.assistant}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Ask a question before or after running the agent.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <input
+              className="flex-1 rounded-xl border p-3 text-sm"
+              value={chatInput}
+              onChange={(event) => setChatInput(event.target.value)}
+              placeholder="Example: Summarize this run, compare the top candidates, or explain why candidates were rejected."
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  sendChat();
+                }
+              }}
+            />
+
+            <button
+              onClick={sendChat}
+              disabled={chatLoading || chatInput.trim().length === 0}
+              className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {chatLoading ? "Thinking..." : "Send"}
+            </button>
+          </div>
+
+          {chatError && (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+              {chatError}
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}
