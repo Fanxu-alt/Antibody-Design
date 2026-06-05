@@ -350,8 +350,7 @@ export default function DevelopabilityPage() {
                 ))}
               </select>
               <p className="mt-2 text-xs text-slate-500">
-                This list is loaded from the backend and includes SARS-CoV-2
-                variants plus the added antigen groups.
+ 
               </p>
             </div>
 
