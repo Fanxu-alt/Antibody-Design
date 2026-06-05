@@ -137,17 +137,7 @@ export default function HelpPage() {
             <li>agent_summary.txt</li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">Citation</h2>
-
-          <div className="rounded-xl bg-slate-100 p-6">
-            SPACE: A Unified Framework for Multi-Constraint
-            Antigen-Specific Antibody Design Operating in Sequence Space
-            <br />
-            <br />
-            Fanxu Meng et al.
-            <br />
-            Vrije Universiteit Amsterdam
-          </div>
+ 
         </div>
       </section>
     </main>
