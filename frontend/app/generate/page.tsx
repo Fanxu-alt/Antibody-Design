@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import SectionTitle from "../components/SectionTitle";
 import { API_BASE, DEFAULT_ANTIGEN } from "../components/config";
 
 type GeneratedCandidate = {
   antigen?: string;
+  target_name?: string;
   cdrh3: string;
   pred_len?: number;
   sample_mode?: string;
@@ -38,7 +39,24 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   URL.revokeObjectURL(url);
 }
 
+function sortTargets(targets: string[]) {
+  return [...new Set(targets)]
+    .map((target) => String(target))
+    .sort((a, b) => {
+      const aIsSars = a.toLowerCase().includes("sars");
+      const bIsSars = b.toLowerCase().includes("sars");
+
+      if (aIsSars && !bIsSars) return -1;
+      if (!aIsSars && bIsSars) return 1;
+
+      return a.localeCompare(b);
+    });
+}
+
 export default function GeneratePage() {
+  const [targets, setTargets] = useState<string[]>([]);
+  const [targetName, setTargetName] = useState("");
+
   const [antigen, setAntigen] = useState("");
   const [numSamples, setNumSamples] = useState(32);
   const [minLen, setMinLen] = useState(8);
@@ -49,9 +67,68 @@ export default function GeneratePage() {
   const [summary, setSummary] = useState("");
   const [results, setResults] = useState<GeneratedCandidate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [targetsLoading, setTargetsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    async function loadTargets() {
+      setTargetsLoading(true);
+
+      try {
+        const response = await fetch(`${API_BASE}/targets`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to load targets: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const loadedTargets = sortTargets(data.targets || []);
+
+        setTargets(loadedTargets);
+
+        const savedTarget = localStorage.getItem("space_target_name");
+
+        if (savedTarget && loadedTargets.includes(savedTarget)) {
+          setTargetName(savedTarget);
+        } else if (loadedTargets.includes("SARS-CoV2_Beta")) {
+          setTargetName("SARS-CoV2_Beta");
+        } else if (loadedTargets.length > 0) {
+          setTargetName(loadedTargets[0]);
+        }
+      } catch {
+        const fallbackTargets = [
+          "SARS-CoV2_Beta",
+          "hiv_gp120",
+          "hiv_gp160",
+          "influenza_ha",
+          "neuraminidase",
+          "circumsporozoite",
+        ];
+
+        setTargets(fallbackTargets);
+        setTargetName("SARS-CoV2_Beta");
+      } finally {
+        setTargetsLoading(false);
+      }
+    }
+
+    const savedAntigen = localStorage.getItem("space_antigen");
+
+    if (savedAntigen) {
+      setAntigen(savedAntigen);
+    }
+
+    loadTargets();
+  }, []);
+
   function loadExample() {
+    const exampleTarget = targets.includes("SARS-CoV2_Beta")
+      ? "SARS-CoV2_Beta"
+      : targets.length > 0
+      ? targets[0]
+      : "";
+
+    setTargetName(exampleTarget);
     setAntigen(DEFAULT_ANTIGEN);
     setNumSamples(32);
     setMinLen(8);
@@ -61,13 +138,19 @@ export default function GeneratePage() {
     setSummary("");
     setResults([]);
     setError("");
+
+    if (exampleTarget) {
+      localStorage.setItem("space_target_name", exampleTarget);
+    }
+    localStorage.setItem("space_antigen", DEFAULT_ANTIGEN);
   }
 
   function downloadGeneratedResults() {
     const rows = results.map((row, index) => ({
       rank: index + 1,
+      target_name: targetName,
       cdrh3: row.cdrh3,
-      pred_len: row.pred_len ?? "",
+      pred_len: row.pred_len ?? row.cdrh3.length,
       sample_mode: row.sample_mode ?? sampleMode,
       temperature: row.temperature ?? temperature,
       antigen: row.antigen ?? antigen,
@@ -83,6 +166,14 @@ export default function GeneratePage() {
     setResults([]);
 
     try {
+      if (!targetName) {
+        throw new Error("Please select a target name.");
+      }
+
+      if (!antigen.trim()) {
+        throw new Error("Please provide an antigen amino-acid sequence.");
+      }
+
       const response = await fetch(`${API_BASE}/generate`, {
         method: "POST",
         headers: {
@@ -104,14 +195,26 @@ export default function GeneratePage() {
       }
 
       const data = await response.json();
-      const candidates = data.candidates || [];
 
-      localStorage.setItem("space_generated_candidates", JSON.stringify(candidates));
+      const candidates: GeneratedCandidate[] = (data.candidates || []).map(
+        (candidate: GeneratedCandidate) => ({
+          ...candidate,
+          target_name: targetName,
+          antigen: candidate.antigen ?? antigen,
+        })
+      );
+
+      localStorage.setItem(
+        "space_generated_candidates",
+        JSON.stringify(candidates)
+      );
       localStorage.setItem("space_antigen", antigen);
+      localStorage.setItem("space_target_name", targetName);
 
       setResults(candidates);
       setSummary(
         [
+          `Target: ${targetName}`,
           `Generated candidates: ${data.count ?? candidates.length}`,
           `Minimum CDRH3 length: ${minLen}`,
           `Sampling mode: ${sampleMode}`,
@@ -135,11 +238,42 @@ export default function GeneratePage() {
           <SectionTitle
             label="Module 01"
             title="Generate"
-            description="Generate antigen-conditioned CDRH3 candidates from an input antigen amino-acid sequence."
+            description="Generate antigen-conditioned CDRH3 candidates from a selected target and antigen amino-acid sequence."
           />
 
           <div className="grid gap-8 lg:grid-cols-5">
             <div className="lg:col-span-2">
+              <label className="mb-2 block text-sm font-semibold">
+                Target name
+              </label>
+              <select
+                value={targetName}
+                onChange={(event) => {
+                  setTargetName(event.target.value);
+                  localStorage.setItem("space_target_name", event.target.value);
+                }}
+                disabled={targetsLoading || targets.length === 0}
+                className="mb-4 w-full rounded-xl border p-3 disabled:bg-slate-100"
+              >
+                {targetsLoading && <option>Loading targets...</option>}
+
+                {!targetsLoading && targets.length === 0 && (
+                  <option>No targets loaded</option>
+                )}
+
+                {!targetsLoading &&
+                  targets.map((target) => (
+                    <option key={target} value={target}>
+                      {target}
+                    </option>
+                  ))}
+              </select>
+
+              <p className="mb-4 text-xs text-slate-500">
+                Target names are loaded from the backend reference set. This
+                selection is saved and passed to Predict and Developability.
+              </p>
+
               <label className="mb-2 block text-sm font-semibold">
                 Antigen amino-acid sequence
               </label>
@@ -160,7 +294,9 @@ export default function GeneratePage() {
                     min={1}
                     max={200}
                     value={numSamples}
-                    onChange={(event) => setNumSamples(Number(event.target.value))}
+                    onChange={(event) =>
+                      setNumSamples(Number(event.target.value))
+                    }
                     className="w-full rounded-xl border p-3"
                   />
                 </div>
@@ -203,7 +339,9 @@ export default function GeneratePage() {
                     max={2.0}
                     step={0.1}
                     value={temperature}
-                    onChange={(event) => setTemperature(Number(event.target.value))}
+                    onChange={(event) =>
+                      setTemperature(Number(event.target.value))
+                    }
                     className="w-full rounded-xl border p-3"
                   />
                 </div>
@@ -229,7 +367,7 @@ export default function GeneratePage() {
 
                 <button
                   onClick={runGenerate}
-                  disabled={loading || antigen.trim().length === 0}
+                  disabled={loading || antigen.trim().length === 0 || !targetName}
                   className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
                   {loading ? "Generating..." : "Generate CDRH3"}
@@ -267,7 +405,9 @@ export default function GeneratePage() {
 
               <div className="rounded-2xl border">
                 <div className="flex items-center justify-between border-b bg-slate-100 px-4 py-3">
-                  <h3 className="text-xl font-bold">Generated CDRH3 candidate</h3>
+                  <h3 className="text-xl font-bold">
+                    Generated CDRH3 candidates
+                  </h3>
                   {results.length > 0 && (
                     <button
                       onClick={downloadGeneratedResults}
@@ -284,6 +424,7 @@ export default function GeneratePage() {
                       <thead className="bg-slate-50 text-left">
                         <tr>
                           <th className="border-b p-3">Rank</th>
+                          <th className="border-b p-3">Target</th>
                           <th className="border-b p-3">CDRH3</th>
                           <th className="border-b p-3">Predicted length</th>
                           <th className="border-b p-3">Sampling mode</th>
@@ -298,11 +439,12 @@ export default function GeneratePage() {
                             className="hover:bg-slate-50"
                           >
                             <td className="border-b p-3">{index + 1}</td>
+                            <td className="border-b p-3">{targetName}</td>
                             <td className="border-b p-3 font-mono font-semibold text-blue-700">
                               {row.cdrh3}
                             </td>
                             <td className="border-b p-3">
-                              {row.pred_len ?? "NA"}
+                              {row.pred_len ?? row.cdrh3.length}
                             </td>
                             <td className="border-b p-3">
                               {row.sample_mode ?? sampleMode}
