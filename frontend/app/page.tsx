@@ -36,7 +36,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-8 py-16">
         <div className="grid gap-6 md:grid-cols-2">
           {[
-            ["65", "Target cohorts"],
+            ["65", "Target antigens"],
         
             ["6", "Antigen groups"],
            
