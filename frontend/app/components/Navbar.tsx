@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { href: "/generate", label: "Generate" },
   { href: "/predict", label: "Predict" },
   { href: "/developability", label: "Developability" },
-  { href: "/agent", label: "Agent" },
+  { href: "/agent", label: "LLM-guided Design" },
   { href: "/help", label: "Help" },
 ];
 
