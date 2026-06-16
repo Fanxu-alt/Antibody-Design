@@ -8,11 +8,11 @@ export default function Home() {
       <section className="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 text-white">
         <div className="mx-auto max-w-7xl px-8 py-24">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-blue-200">
-            SPACE
+             
           </p>
 
           <h1 className="mb-6 max-w-4xl text-5xl font-bold leading-tight md:text-6xl">
-            Antibody Design
+            SPACE
           </h1>
 
           <p className="mb-8 max-w-4xl text-lg leading-8 text-blue-100">
