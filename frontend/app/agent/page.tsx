@@ -120,9 +120,6 @@ export default function AgentPage() {
   const [targetCount, setTargetCount] = useState(10);
   const [minBindingProbability, setMinBindingProbability] = useState(0.8);
   const [maxRounds, setMaxRounds] = useState(4);
-  const [userRequest, setUserRequest] = useState(
-    "Please find antibody candidates with high predicted binding probability and good developability."
-  );
 
   const [summary, setSummary] = useState("");
   const [acceptedRecords, setAcceptedRecords] = useState<RecordRow[]>([]);
@@ -174,7 +171,11 @@ export default function AgentPage() {
 
         setTargets(sortedTargets);
 
-        if (sortedTargets.includes(EXAMPLE_TARGET)) {
+        const savedTarget = localStorage.getItem("space_target_name");
+
+        if (savedTarget && sortedTargets.includes(savedTarget)) {
+          setAntigenName(savedTarget);
+        } else if (sortedTargets.includes(EXAMPLE_TARGET)) {
           setAntigenName(EXAMPLE_TARGET);
         } else {
           setAntigenName(sortedTargets[0]);
@@ -188,26 +189,34 @@ export default function AgentPage() {
       }
     }
 
+    const savedAntigen = localStorage.getItem("space_antigen");
+    const savedTarget = localStorage.getItem("space_target_name");
+
+    if (savedAntigen) {
+      setAntigenSequence(savedAntigen);
+    }
+
+    if (savedTarget) {
+      setAntigenName(savedTarget);
+    }
+
     loadTargets();
   }, []);
 
   function loadExample() {
-    setAntigenName(
-      targets.includes(EXAMPLE_TARGET)
-        ? EXAMPLE_TARGET
-        : targets.length > 0
-        ? targets[0]
-        : ""
-    );
+    const exampleTarget = targets.includes(EXAMPLE_TARGET)
+      ? EXAMPLE_TARGET
+      : targets.length > 0
+      ? targets[0]
+      : "";
+
+    setAntigenName(exampleTarget);
     setAntigenSequence(DEFAULT_ANTIGEN);
     setHeavyTemplate(DEFAULT_HEAVY);
     setCdrh3Template(DEFAULT_CDRH3);
     setTargetCount(10);
     setMinBindingProbability(0.8);
     setMaxRounds(4);
-    setUserRequest(
-      "Please find 10 antibody candidates with high predicted binding probability and good developability."
-    );
     setSummary("");
     setAcceptedRecords([]);
     setHistoryRecords([]);
@@ -216,6 +225,11 @@ export default function AgentPage() {
     setChatHistory([]);
     setError("");
     setChatError("");
+
+    if (exampleTarget) {
+      localStorage.setItem("space_target_name", exampleTarget);
+    }
+    localStorage.setItem("space_antigen", DEFAULT_ANTIGEN);
   }
 
   function downloadAllAgentResults() {
@@ -225,7 +239,6 @@ export default function AgentPage() {
         target_count: targetCount,
         min_binding_probability: minBindingProbability,
         max_rounds: maxRounds,
-        user_request: userRequest,
         summary,
         accepted_count: acceptedRecords.length,
         history_count: historyRecords.length,
@@ -273,6 +286,9 @@ export default function AgentPage() {
         throw new Error("Please provide a template CDRH3.");
       }
 
+      localStorage.setItem("space_target_name", antigenName);
+      localStorage.setItem("space_antigen", antigenSequence);
+
       const response = await fetch(`${API_BASE}/agent/run`, {
         method: "POST",
         headers: {
@@ -286,7 +302,6 @@ export default function AgentPage() {
           target_count: targetCount,
           min_binding_probability: minBindingProbability,
           max_rounds: maxRounds,
-          user_request: userRequest,
         }),
       });
 
@@ -373,8 +388,8 @@ export default function AgentPage() {
         <div className="rounded-3xl border bg-white p-8 shadow-sm">
           <SectionTitle
             label="LLM-guided workflow"
-            title="Agent"
-            description="Use a language-model-guided antibody design agent to run a closed-loop workflow: interpret the design goal, generate CDRH3 candidates, predict binding, rank developability, and summarize the run."
+            title="LLM-guided Antibody Design"
+            description="Target-specific closed-loop optimization integrating antigen-conditioned generation, antibody-antigen binding prediction, developability assessment, and language-model-guided result interpretation."
           />
 
           <div className="grid gap-8 lg:grid-cols-5">
@@ -385,7 +400,10 @@ export default function AgentPage() {
 
               <select
                 value={antigenName}
-                onChange={(event) => setAntigenName(event.target.value)}
+                onChange={(event) => {
+                  setAntigenName(event.target.value);
+                  localStorage.setItem("space_target_name", event.target.value);
+                }}
                 disabled={targetsLoading || targets.length === 0}
                 className="w-full rounded-xl border p-3 disabled:bg-slate-100"
               >
@@ -414,15 +432,6 @@ export default function AgentPage() {
                   {targetsError}
                 </div>
               )}
-
-              <label className="mb-2 mt-4 block text-sm font-semibold">
-                User design request
-              </label>
-              <textarea
-                className="h-24 w-full rounded-xl border p-4 text-sm"
-                value={userRequest}
-                onChange={(event) => setUserRequest(event.target.value)}
-              />
 
               <label className="mb-2 mt-4 block text-sm font-semibold">
                 Antigen amino-acid sequence
@@ -515,7 +524,7 @@ export default function AgentPage() {
                   disabled={loading || targetsLoading || !antigenName}
                   className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
-                  {loading ? "Running agent..." : "Run Agent"}
+                  {loading ? "Running design..." : "Run LLM-guided Design"}
                 </button>
 
                 <button
@@ -541,7 +550,7 @@ export default function AgentPage() {
             <div className="lg:col-span-3">
               <div className="mb-6 rounded-2xl border bg-slate-50 p-6">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h3 className="text-xl font-bold">Agent summary</h3>
+                  <h3 className="text-xl font-bold">Design summary</h3>
 
                   {summary && (
                     <button
@@ -559,7 +568,7 @@ export default function AgentPage() {
                   </pre>
                 ) : (
                   <p className="text-sm text-slate-500">
-                    Agent summary will appear here after the run.
+                    Design summary will appear here after the run.
                   </p>
                 )}
               </div>
@@ -638,7 +647,7 @@ export default function AgentPage() {
         <div className="mt-8 rounded-3xl border bg-white p-8 shadow-sm">
           <SectionTitle
             label="Run analysis"
-            title="Agent Q&A"
+            title="Result Q&A"
             description="Ask the language model to summarize the current run, explain bottlenecks, compare candidates, or suggest the next optimization round."
           />
 
@@ -661,7 +670,7 @@ export default function AgentPage() {
               </div>
             ) : (
               <p className="text-sm text-slate-500">
-                Ask a question before or after running the agent.
+                Ask a question before or after running the design workflow.
               </p>
             )}
           </div>
