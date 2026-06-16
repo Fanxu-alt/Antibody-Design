@@ -13,6 +13,7 @@ import {
 
 type GeneratedCandidate = {
   antigen?: string;
+  target_name?: string;
   cdrh3: string;
   pred_len?: number;
   sample_mode?: string;
@@ -29,8 +30,10 @@ type PredictionMode = "generated" | "manual";
 
 type PredictionRow = {
   rank: number;
+  target_name: string;
   cdrh3: string;
   heavy_chain: string;
+  antigen: string;
   binding_probability?: number;
   binding_logit?: number;
 };
@@ -84,8 +87,26 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   URL.revokeObjectURL(url);
 }
 
+function sortTargets(targets: string[]) {
+  return [...new Set(targets)]
+    .map((target) => String(target))
+    .sort((a, b) => {
+      const aIsSars = a.toLowerCase().includes("sars");
+      const bIsSars = b.toLowerCase().includes("sars");
+
+      if (aIsSars && !bIsSars) return -1;
+      if (!aIsSars && bIsSars) return 1;
+
+      return a.localeCompare(b);
+    });
+}
+
 export default function PredictPage() {
   const [mode, setMode] = useState<PredictionMode>("generated");
+
+  const [targets, setTargets] = useState<string[]>([]);
+  const [targetName, setTargetName] = useState("");
+  const [targetsLoading, setTargetsLoading] = useState(false);
 
   const [generatedCandidates, setGeneratedCandidates] = useState<
     GeneratedCandidate[]
@@ -120,6 +141,48 @@ export default function PredictPage() {
   }, [generatedCandidates, selectedIndices]);
 
   useEffect(() => {
+    async function loadTargets() {
+      setTargetsLoading(true);
+
+      try {
+        const response = await fetch(`${API_BASE}/targets`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to load targets: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const loadedTargets = sortTargets(data.targets || []);
+        setTargets(loadedTargets);
+
+        const savedTarget = localStorage.getItem("space_target_name");
+
+        if (savedTarget && loadedTargets.includes(savedTarget)) {
+          setTargetName(savedTarget);
+        } else if (loadedTargets.includes("SARS-CoV2_Beta")) {
+          setTargetName("SARS-CoV2_Beta");
+        } else if (loadedTargets.length > 0) {
+          setTargetName(loadedTargets[0]);
+        }
+      } catch {
+        const fallbackTargets = [
+          "SARS-CoV2_Beta",
+          "hiv_gp120",
+          "hiv_gp160",
+          "influenza_ha",
+          "neuraminidase",
+          "circumsporozoite",
+        ];
+
+        setTargets(fallbackTargets);
+        setTargetName(
+          localStorage.getItem("space_target_name") || "SARS-CoV2_Beta"
+        );
+      } finally {
+        setTargetsLoading(false);
+      }
+    }
+
     const savedCandidates = localStorage.getItem("space_generated_candidates");
     const savedAntigen = localStorage.getItem("space_antigen");
 
@@ -129,6 +192,15 @@ export default function PredictPage() {
         if (Array.isArray(parsed)) {
           setGeneratedCandidates(parsed);
           setSelectedIndices(parsed.map((_, index) => index));
+
+          const firstCandidate = parsed[0];
+          if (firstCandidate?.antigen) {
+            setAntigen(firstCandidate.antigen);
+            setManualAntigen(firstCandidate.antigen);
+          }
+          if (firstCandidate?.target_name) {
+            setTargetName(firstCandidate.target_name);
+          }
         }
       } catch {
         // Ignore malformed localStorage content.
@@ -139,7 +211,14 @@ export default function PredictPage() {
       setAntigen(savedAntigen);
       setManualAntigen(savedAntigen);
     }
+
+    loadTargets();
   }, []);
+
+  function setAndSaveTarget(nextTarget: string) {
+    setTargetName(nextTarget);
+    localStorage.setItem("space_target_name", nextTarget);
+  }
 
   function toggleSelectAll() {
     if (allSelected) {
@@ -159,15 +238,38 @@ export default function PredictPage() {
     });
   }
 
+  function loadExample() {
+    const exampleTarget = targets.includes("SARS-CoV2_Beta")
+      ? "SARS-CoV2_Beta"
+      : targets.length > 0
+      ? targets[0]
+      : "";
+
+    setMode("generated");
+    setAndSaveTarget(exampleTarget);
+    setTemplateHeavy(DEFAULT_HEAVY);
+    setTemplateCdrh3(DEFAULT_CDRH3);
+    setAntigen(DEFAULT_ANTIGEN);
+    setManualHeavy(DEFAULT_HEAVY);
+    setManualAntigen(DEFAULT_ANTIGEN);
+    setSingleResult(null);
+    setPredictionRows([]);
+    setSummary("");
+    setError("");
+
+    localStorage.setItem("space_antigen", DEFAULT_ANTIGEN);
+  }
+
   function downloadPredictionResults() {
     const rows = predictionRows.map((row, index) => ({
       rank: index + 1,
       original_rank: row.rank,
+      target_name: row.target_name,
       cdrh3: row.cdrh3,
       binding_probability: row.binding_probability ?? "",
       binding_logit: row.binding_logit ?? "",
       heavy_chain: row.heavy_chain,
-      antigen,
+      antigen: row.antigen,
       prediction_mode: mode,
     }));
 
@@ -194,6 +296,13 @@ export default function PredictPage() {
     return response.json();
   }
 
+  function savePredictionRows(rows: PredictionRow[]) {
+    setPredictionRows(rows);
+    localStorage.setItem("space_prediction_results", JSON.stringify(rows));
+    localStorage.setItem("space_antigen", mode === "manual" ? manualAntigen : antigen);
+    localStorage.setItem("space_target_name", targetName);
+  }
+
   async function predictSelected() {
     setLoading(true);
     setError("");
@@ -202,6 +311,10 @@ export default function PredictPage() {
     setSummary("");
 
     try {
+      if (!targetName) {
+        throw new Error("Please select a target name.");
+      }
+
       if (mode === "manual") {
         const heavySeq = cleanSequence(manualHeavy);
         const antigenSeq = cleanSequence(manualAntigen);
@@ -211,25 +324,24 @@ export default function PredictPage() {
 
         const result = await callPredictBinding(heavySeq, antigenSeq);
 
-        const rows = [
+        const rows: PredictionRow[] = [
           {
             rank: 1,
+            target_name: targetName,
             cdrh3: "Manual full heavy-chain sequence",
             heavy_chain: heavySeq,
+            antigen: antigenSeq,
             binding_probability: result.binding_probability,
             binding_logit: result.logit,
           },
         ];
 
         setSingleResult(result);
-        setPredictionRows(rows);
-        localStorage.setItem(
-          "space_prediction_results",
-          JSON.stringify(rows)
-        );
+        savePredictionRows(rows);
         setSummary(
           [
             "Prediction mode: Manual Sequence",
+            `Target: ${targetName}`,
             "Predicted sequences: 1",
             `Heavy-chain length: ${heavySeq.length}`,
             `Antigen length: ${antigenSeq.length}`,
@@ -264,8 +376,10 @@ export default function PredictPage() {
 
         rows.push({
           rank: item.index + 1,
+          target_name: item.candidate.target_name || targetName,
           cdrh3,
           heavy_chain: heavySeq,
+          antigen: antigenSeq,
           binding_probability: result.binding_probability,
           binding_logit: result.logit,
         });
@@ -277,14 +391,11 @@ export default function PredictPage() {
         return right - left;
       });
 
-      setPredictionRows(rows);
-      localStorage.setItem(
-        "space_prediction_results",
-        JSON.stringify(rows)
-      );
+      savePredictionRows(rows);
       setSummary(
         [
           "Prediction mode: Generated Candidates",
+          `Target: ${targetName}`,
           `Predicted sequences: ${rows.length}`,
           `Selected candidates: ${selectedIndices.length}`,
           `Antigen length: ${antigenSeq.length}`,
@@ -307,6 +418,10 @@ export default function PredictPage() {
     setSummary("");
 
     try {
+      if (!targetName) {
+        throw new Error("Please select a target name.");
+      }
+
       if (generatedCandidates.length === 0) {
         throw new Error(
           "No generated CDRH3 candidates found. Please run the Generate page first."
@@ -334,8 +449,10 @@ export default function PredictPage() {
 
         rows.push({
           rank: index + 1,
+          target_name: candidate.target_name || targetName,
           cdrh3,
           heavy_chain: heavySeq,
+          antigen: antigenSeq,
           binding_probability: result.binding_probability,
           binding_logit: result.logit,
         });
@@ -347,14 +464,11 @@ export default function PredictPage() {
         return right - left;
       });
 
-      setPredictionRows(rows);
-      localStorage.setItem(
-        "space_prediction_results",
-        JSON.stringify(rows)
-      );
+      savePredictionRows(rows);
       setSummary(
         [
           "Prediction mode: Generated Candidates",
+          `Target: ${targetName}`,
           `Predicted sequences: ${rows.length}`,
           "Selection: all generated candidates",
           `Antigen length: ${antigenSeq.length}`,
@@ -379,33 +493,59 @@ export default function PredictPage() {
             description="Predict antibody-antigen interaction for selected generated CDRH3 candidates or for a manually entered heavy-chain sequence."
           />
 
-          <div className="mb-8 rounded-2xl border bg-slate-50 p-6">
-            <h3 className="mb-4 text-xl font-bold">Mode</h3>
-
-            <div className="flex flex-wrap gap-6">
-              <label className="flex items-center gap-3 text-sm font-semibold">
-                <input
-                  type="radio"
-                  name="prediction-mode"
-                  value="generated"
-                  checked={mode === "generated"}
-                  onChange={() => setMode("generated")}
-                  className="h-4 w-4"
-                />
-                Generated Candidates
+          <div className="mb-8 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                Target name
               </label>
+              <select
+                value={targetName}
+                onChange={(event) => setAndSaveTarget(event.target.value)}
+                disabled={targetsLoading || targets.length === 0}
+                className="w-full rounded-xl border p-3 disabled:bg-slate-100"
+              >
+                {targetsLoading && <option>Loading targets...</option>}
 
-              <label className="flex items-center gap-3 text-sm font-semibold">
-                <input
-                  type="radio"
-                  name="prediction-mode"
-                  value="manual"
-                  checked={mode === "manual"}
-                  onChange={() => setMode("manual")}
-                  className="h-4 w-4"
-                />
-                Manual Sequence
-              </label>
+                {!targetsLoading && targets.length === 0 && (
+                  <option>No targets loaded</option>
+                )}
+
+                {!targetsLoading &&
+                  targets.map((target) => (
+                    <option key={target} value={target}>
+                      {target}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="rounded-2xl border bg-slate-50 p-4">
+              <h3 className="mb-3 text-sm font-bold">Mode</h3>
+              <div className="flex flex-wrap gap-6">
+                <label className="flex items-center gap-3 text-sm font-semibold">
+                  <input
+                    type="radio"
+                    name="prediction-mode"
+                    value="generated"
+                    checked={mode === "generated"}
+                    onChange={() => setMode("generated")}
+                    className="h-4 w-4"
+                  />
+                  Generated Candidates
+                </label>
+
+                <label className="flex items-center gap-3 text-sm font-semibold">
+                  <input
+                    type="radio"
+                    name="prediction-mode"
+                    value="manual"
+                    checked={mode === "manual"}
+                    onChange={() => setMode("manual")}
+                    className="h-4 w-4"
+                  />
+                  Manual Sequence
+                </label>
+              </div>
             </div>
           </div>
 
@@ -472,6 +612,13 @@ export default function PredictPage() {
                     </div>
                   )}
                 </div>
+
+                <button
+                  onClick={loadExample}
+                  className="mt-4 rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Load example
+                </button>
               </div>
 
               <div className="lg:col-span-3">
@@ -534,7 +681,7 @@ export default function PredictPage() {
           <div className="mt-8 flex flex-wrap gap-3 border-t pt-6">
             <button
               onClick={predictSelected}
-              disabled={loading}
+              disabled={loading || !targetName}
               className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {loading ? "Predicting..." : "Predict Selected"}
@@ -543,7 +690,7 @@ export default function PredictPage() {
             {mode === "generated" && (
               <button
                 onClick={predictAll}
-                disabled={loading || generatedCandidates.length === 0}
+                disabled={loading || generatedCandidates.length === 0 || !targetName}
                 className="rounded-full bg-slate-900 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 {loading ? "Predicting..." : "Predict All"}
@@ -618,6 +765,7 @@ export default function PredictPage() {
                       <thead className="bg-slate-50 text-left">
                         <tr>
                           <th className="border-b p-3">Rank</th>
+                          <th className="border-b p-3">Target</th>
                           <th className="border-b p-3">CDRH3</th>
                           <th className="border-b p-3">
                             Binding Probability
@@ -633,6 +781,7 @@ export default function PredictPage() {
                             className="hover:bg-slate-50"
                           >
                             <td className="border-b p-3">{index + 1}</td>
+                            <td className="border-b p-3">{row.target_name}</td>
                             <td className="border-b p-3 font-mono font-semibold text-blue-700">
                               {row.cdrh3}
                             </td>
