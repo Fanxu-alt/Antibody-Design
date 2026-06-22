@@ -43,10 +43,6 @@ export default function HelpPage() {
               physicochemical properties, and novelty.
             </li>
             <li>
-              <strong>Full Pipeline:</strong> combines generation, binding
-              prediction, and developability ranking.
-            </li>
-            <li>
               <strong>LLM Controller:</strong> performs iterative candidate search using
               binding and developability constraints.
             </li>
