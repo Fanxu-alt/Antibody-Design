@@ -17,6 +17,28 @@ type ChatMessage = {
   assistant: string;
 };
 
+type ControllerProgress = {
+  job_id?: string;
+  status?: string;
+  message?: string;
+  progress_percent?: number;
+  current_round?: number;
+  total_rounds?: number;
+  selected_count?: number;
+  target_count?: number;
+  evaluated_count?: number;
+  current_temperature?: number;
+  current_min_binding_probability?: number;
+  current_samples_per_round?: number;
+  current_sampling_mode?: string;
+  latest_selected_preview?: RecordRow[];
+  latest_history_preview?: RecordRow[];
+  latest_round_preview?: RecordRow[];
+  strategy_notes?: string[];
+  summary?: string;
+  error?: string;
+};
+
 const EXAMPLE_TARGET = "SARS-CoV2_Beta";
 
 function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
@@ -52,6 +74,10 @@ function downloadText(filename: string, text: string) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function SimpleTable({
@@ -126,6 +152,9 @@ export default function AgentPage() {
   const [historyRecords, setHistoryRecords] = useState<RecordRow[]>([]);
   const [acceptedDownloadUrl, setAcceptedDownloadUrl] = useState("");
   const [historyDownloadUrl, setHistoryDownloadUrl] = useState("");
+
+  const [jobId, setJobId] = useState("");
+  const [progress, setProgress] = useState<ControllerProgress | null>(null);
 
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -222,6 +251,8 @@ export default function AgentPage() {
     setHistoryRecords([]);
     setAcceptedDownloadUrl("");
     setHistoryDownloadUrl("");
+    setJobId("");
+    setProgress(null);
     setChatHistory([]);
     setError("");
     setChatError("");
@@ -268,6 +299,8 @@ export default function AgentPage() {
     setHistoryRecords([]);
     setAcceptedDownloadUrl("");
     setHistoryDownloadUrl("");
+    setJobId("");
+    setProgress(null);
 
     try {
       if (!antigenName) {
@@ -289,7 +322,7 @@ export default function AgentPage() {
       localStorage.setItem("space_target_name", antigenName);
       localStorage.setItem("space_antigen", antigenSequence);
 
-      const response = await fetch(`${API_BASE}/controller/run`, {
+      const startResponse = await fetch(`${API_BASE}/controller/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -305,12 +338,79 @@ export default function AgentPage() {
         }),
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`API error: ${response.status} ${text}`);
+      if (!startResponse.ok) {
+        const text = await startResponse.text();
+        throw new Error(`API error: ${startResponse.status} ${text}`);
       }
 
-      const data = await response.json();
+      const startData = await startResponse.json();
+      const newJobId = startData.job_id;
+
+      if (!newJobId) {
+        throw new Error("Backend did not return a job_id.");
+      }
+
+      setJobId(newJobId);
+
+      let completed = false;
+
+      while (!completed) {
+        await sleep(2000);
+
+        const statusResponse = await fetch(
+          `${API_BASE}/controller/status/${newJobId}`
+        );
+
+        if (!statusResponse.ok) {
+          const text = await statusResponse.text();
+          throw new Error(`Status API error: ${statusResponse.status} ${text}`);
+        }
+
+        const statusData: ControllerProgress = await statusResponse.json();
+
+        setProgress(statusData);
+
+        const selected =
+          statusData.latest_selected_preview ||
+          statusData.selected_records ||
+          [];
+
+        const history =
+          statusData.latest_history_preview ||
+          statusData.history_records ||
+          [];
+
+        if (selected.length > 0) {
+          setAcceptedRecords(selected);
+        }
+
+        if (history.length > 0) {
+          setHistoryRecords(history);
+        }
+
+        if (statusData.summary) {
+          setSummary(statusData.summary);
+        }
+
+        if (statusData.status === "error") {
+          throw new Error(statusData.error || statusData.message || "Controller job failed.");
+        }
+
+        if (statusData.status === "completed") {
+          completed = true;
+        }
+      }
+
+      const resultResponse = await fetch(
+        `${API_BASE}/controller/result/${newJobId}`
+      );
+
+      if (!resultResponse.ok) {
+        const text = await resultResponse.text();
+        throw new Error(`Result API error: ${resultResponse.status} ${text}`);
+      }
+
+      const data = await resultResponse.json();
 
       const selected =
         data.accepted_records ||
@@ -577,6 +677,77 @@ export default function AgentPage() {
             </div>
 
             <div className="lg:col-span-3">
+              <div className="mb-6 rounded-2xl border bg-white p-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold">Search progress</h3>
+                  {jobId && (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      Job: {jobId.slice(0, 8)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full bg-blue-700 transition-all"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(0, progress?.progress_percent ?? 0)
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-3 text-sm text-slate-700 md:grid-cols-4">
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs text-slate-500">Status</div>
+                    <div className="font-semibold">
+                      {progress?.status || (loading ? "running" : "idle")}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs text-slate-500">Round</div>
+                    <div className="font-semibold">
+                      {progress?.current_round ?? 0}
+                      {progress?.total_rounds ? ` / ${progress.total_rounds}` : ""}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs text-slate-500">Selected</div>
+                    <div className="font-semibold">
+                      {progress?.selected_count ?? acceptedRecords.length} /{" "}
+                      {progress?.target_count ?? targetCount}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <div className="text-xs text-slate-500">Evaluated</div>
+                    <div className="font-semibold">
+                      {progress?.evaluated_count ?? historyRecords.length}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm text-slate-600">
+                  {progress?.message ||
+                    "Progress will update every 2 seconds during the search."}
+                </p>
+
+                {progress?.strategy_notes && progress.strategy_notes.length > 0 && (
+                  <div className="mt-4 rounded-xl border bg-slate-50 p-4 text-sm text-slate-700">
+                    <div className="mb-2 font-semibold">Adaptive strategy notes</div>
+                    <ul className="list-disc space-y-1 pl-5">
+                      {progress.strategy_notes.map((note, index) => (
+                        <li key={index}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
               <div className="mb-6 rounded-2xl border bg-slate-50 p-6">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h3 className="text-xl font-bold">Design summary</h3>
@@ -604,7 +775,7 @@ export default function AgentPage() {
 
               <div className="mb-6 rounded-2xl border">
                 <div className="flex items-center justify-between border-b bg-slate-100 px-4 py-3">
-                  <h3 className="text-xl font-bold">Accepted candidates</h3>
+                  <h3 className="text-xl font-bold">Selected candidates</h3>
 
                   <div className="flex gap-2">
                     {acceptedRecords.length > 0 && (
