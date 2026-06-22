@@ -66,3 +66,82 @@ export default function Home() {
     </main>
   );
 }
+
+<section className="mx-auto max-w-7xl px-8 py-16">
+  <div className="rounded-3xl border bg-white p-10 shadow-sm">
+    <h2 className="mb-6 text-3xl font-bold">About</h2>
+
+    <p className="mb-6 text-slate-700">
+      SPACE is a sequence-based framework for antigen-specific antibody design
+      integrating antigen-conditioned CDRH3 generation, antibody–antigen
+      interaction prediction, developability assessment, and LLM-guided
+      closed-loop optimization.
+    </p>
+
+    <div className="space-y-2 text-sm text-slate-700">
+      <p>
+        <strong>Authors</strong>
+      </p>
+
+      <p>
+        Fanxu Meng†, Han Wang†, Na Zhou†, Mingjie Liu, Minghui Zhao,
+        Linxinyu Wang, K. Anton Feenstra, Olga Tsoy, Rachit Kumar,
+        Fuzhong Xue*, Hongqian Cao*, Qingzhen Hou*
+      </p>
+
+      <p>
+        † Equal contribution
+      </p>
+    </div>
+
+    <div className="mt-8 space-y-2 text-sm text-slate-700">
+      <p>
+        <strong>Affiliations</strong>
+      </p>
+
+      <p>
+        1. School of Public Health, Cheeloo College of Medicine,
+        Shandong University, Jinan 250100, China
+      </p>
+
+      <p>
+        2. Department of Computer Science,
+        Vrije Universiteit Amsterdam,
+        Amsterdam 1081HV, The Netherlands
+      </p>
+
+      <p>
+        3. National Institute of Health Data Science of China,
+        Shandong University, Jinan 250100, China
+      </p>
+
+      <p>
+        4. State Key Laboratory of Discovery and Utilization of Functional
+        Components in Traditional Chinese Medicine,
+        Shandong University, Jinan, China
+      </p>
+    </div>
+
+    <div className="mt-8 border-t pt-8">
+      <h3 className="mb-3 text-xl font-semibold">Contact</h3>
+
+      <p className="text-slate-700">
+        Fanxu Meng
+      </p>
+
+      <p className="text-slate-700">
+        Vrije Universiteit Amsterdam & Shandong University
+      </p>
+
+      <p className="text-slate-700">
+        Email: mengzsq22@gmail.com
+      </p>
+
+      <p className="mt-3 text-sm text-slate-500">
+        For questions regarding the SPACE framework,
+        antibody design workflow, datasets, or collaboration opportunities,
+        please contact the corresponding authors.
+      </p>
+    </div>
+  </div>
+</section>
