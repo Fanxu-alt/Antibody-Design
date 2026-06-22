@@ -245,18 +245,18 @@ export default function AgentPage() {
       },
     ];
 
-    downloadCsv("agent_run_metadata.csv", metadata);
+    downloadCsv("llm_guided_design_metadata.csv", metadata);
 
     if (acceptedRecords.length > 0) {
-      downloadCsv("agent_accepted_candidates.csv", acceptedRecords);
+      downloadCsv("llm_guided_design_selected_candidates.csv", acceptedRecords);
     }
 
     if (historyRecords.length > 0) {
-      downloadCsv("agent_search_history.csv", historyRecords);
+      downloadCsv("llm_guided_design_search_history.csv", historyRecords);
     }
 
     if (summary) {
-      downloadText("agent_summary.txt", summary);
+      downloadText("llm_guided_design_summary.txt", summary);
     }
   }
 
@@ -319,11 +319,11 @@ export default function AgentPage() {
       setHistoryDownloadUrl(data.history_download_url || "");
 
       localStorage.setItem(
-        "space_agent_accepted_records",
+        "space_llm_design_accepted_records",
         JSON.stringify(data.accepted_records || [])
       );
       localStorage.setItem(
-        "space_agent_history_records",
+        "space_llm_design_history_records",
         JSON.stringify(data.history_records || [])
       );
     } catch (err) {
@@ -554,7 +554,7 @@ export default function AgentPage() {
 
                   {summary && (
                     <button
-                      onClick={() => downloadText("agent_summary.txt", summary)}
+                      onClick={() => downloadText("llm_guided_design_summary.txt", summary)}
                       className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
                     >
                       Download TXT
@@ -582,7 +582,7 @@ export default function AgentPage() {
                       <button
                         onClick={() =>
                           downloadCsv(
-                            "agent_accepted_candidates.csv",
+                            "llm_guided_design_selected_candidates.csv",
                             acceptedRecords
                           )
                         }
@@ -616,7 +616,7 @@ export default function AgentPage() {
                       <button
                         onClick={() =>
                           downloadCsv(
-                            "agent_search_history.csv",
+                            "llm_guided_design_search_history.csv",
                             historyRecords
                           )
                         }
