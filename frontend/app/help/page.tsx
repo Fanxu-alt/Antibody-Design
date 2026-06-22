@@ -253,15 +253,7 @@ export default function HelpPage() {
             <li>Return accepted candidates and full search history.</li>
           </ol>
 
-          <h3 className="mb-3 text-xl font-semibold">Typical LLM Controller Request</h3>
-
-          <div className="mb-10 rounded-xl bg-slate-100 p-5 font-mono text-sm leading-7">
-            Find 10 antibody candidates for SARS-CoV-2 Omicron BA.2 with high
-            predicted binding probability, low developability risk, and diverse
-            CDRH3 sequences.
-          </div>
-
-          <h2 className="mb-4 text-2xl font-bold">9. Downloadable Outputs</h2>
+          <h2 className="mb-4 text-2xl font-bold">8. Downloadable Outputs</h2>
 
           <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
             <li>
@@ -290,7 +282,7 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">10. Practical Tips</h2>
+          <h2 className="mb-4 text-2xl font-bold">9. Practical Tips</h2>
 
           <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
             <li>
@@ -315,7 +307,7 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">11. Contact</h2>
+          <h2 className="mb-4 text-2xl font-bold">10. Contact</h2>
 
           <p className="leading-7 text-slate-700">
             For questions about SPACE, model usage, or interpretation of output
