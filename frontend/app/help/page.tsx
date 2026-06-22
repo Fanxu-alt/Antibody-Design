@@ -20,12 +20,6 @@ export default function HelpPage() {
             computational screening and prioritization of antibody candidates.
           </p>
 
-          <div className="mb-10 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-900">
-            <strong>Important note:</strong> SPACE predictions are computational
-            estimates. Candidates selected by the platform should be validated
-            experimentally before biological or therapeutic interpretation.
-          </div>
-
           <h2 className="mb-4 text-2xl font-bold">1. Overview</h2>
 
           <p className="mb-4 leading-7 text-slate-700">
