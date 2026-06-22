@@ -312,19 +312,48 @@ export default function AgentPage() {
 
       const data = await response.json();
 
-      setSummary(data.summary || "");
-      setAcceptedRecords(data.accepted_records || []);
-      setHistoryRecords(data.history_records || []);
-      setAcceptedDownloadUrl(data.accepted_download_url || "");
-      setHistoryDownloadUrl(data.history_download_url || "");
+      const selected =
+        data.accepted_records ||
+        data.selected_records ||
+        data.selected_candidates ||
+        data.selected ||
+        data.candidates ||
+        [];
+
+      const history =
+        data.history_records ||
+        data.search_history ||
+        data.search_records ||
+        data.history ||
+        data.all_records ||
+        [];
+
+      setSummary(data.summary || data.message || "");
+      setAcceptedRecords(selected);
+      setHistoryRecords(history);
+
+      setAcceptedDownloadUrl(
+        data.accepted_download_url ||
+          data.selected_download_url ||
+          data.selected_candidates_download_url ||
+          data.controller_selected_download_url ||
+          `${API_BASE}/download/controller_selected_candidates.csv`
+      );
+
+      setHistoryDownloadUrl(
+        data.history_download_url ||
+          data.search_history_download_url ||
+          data.controller_history_download_url ||
+          `${API_BASE}/download/controller_search_history.csv`
+      );
 
       localStorage.setItem(
         "space_llm_design_accepted_records",
-        JSON.stringify(data.accepted_records || [])
+        JSON.stringify(selected)
       );
       localStorage.setItem(
         "space_llm_design_history_records",
-        JSON.stringify(data.history_records || [])
+        JSON.stringify(history)
       );
     } catch (err) {
       setError(String(err));
@@ -463,7 +492,7 @@ export default function AgentPage() {
               <div className="mt-4 grid gap-4 md:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-sm font-semibold">
-                    Accepted candidates
+                    Desired candidates
                   </label>
                   <input
                     type="number"
