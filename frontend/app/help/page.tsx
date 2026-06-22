@@ -83,10 +83,6 @@ export default function HelpPage() {
             ↓
             <br />
             Rank candidates
-            <br />
-            ↓
-            <br />
-            Select candidates for experimental validation
           </div>
 
           <p className="mb-10 leading-7 text-slate-700">
