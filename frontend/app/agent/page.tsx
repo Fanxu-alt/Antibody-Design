@@ -31,6 +31,8 @@ type ControllerProgress = {
   current_min_binding_probability?: number;
   current_samples_per_round?: number;
   current_sampling_mode?: string;
+  selected_records?: RecordRow[];
+  history_records?: RecordRow[];
   latest_selected_preview?: RecordRow[];
   latest_history_preview?: RecordRow[];
   latest_round_preview?: RecordRow[];
