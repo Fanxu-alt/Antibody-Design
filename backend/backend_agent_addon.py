@@ -1,9 +1,3 @@
-# ============================================================
-# LLM-guided full pipeline Agent API
-# Paste this at the bottom of backend/main.py
-# Requires: agent_api.py with AntibodyDesignAgent
-# ============================================================
-
 from agent_api import AntibodyDesignAgent
 
 
