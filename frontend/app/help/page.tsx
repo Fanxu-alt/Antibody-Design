@@ -50,14 +50,6 @@ export default function HelpPage() {
 
           <h2 className="mb-4 text-2xl font-bold">2. Supported Antigen Groups</h2>
 
-          <p className="mb-4 leading-7 text-slate-700">
-            The current platform supports antigen-associated antibody datasets
-            used for model training, evaluation, and developability reference
-            cohorts. Other antigen sequences can also be submitted, but
-            developability percentile estimates are most meaningful when a
-            matching reference cohort is available.
-          </p>
-
           <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
             <li>SARS-CoV-2 spike and variants</li>
             <li>HIV gp120</li>
