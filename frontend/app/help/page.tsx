@@ -282,38 +282,6 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">9. Practical Tips</h2>
-
-          <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
-            <li>
-              Use stochastic sampling and moderate temperature for diverse
-              candidate generation.
-            </li>
-            <li>
-              Increase the number of generated samples when few candidates pass
-              the hard filter.
-            </li>
-            <li>
-              Prioritize candidates that jointly satisfy binding and
-              developability constraints.
-            </li>
-            <li>
-              Do not select candidates based only on binding probability.
-              Developability risk and sequence novelty should also be considered.
-            </li>
-            <li>
-              Always perform experimental validation before biological
-              interpretation.
-            </li>
-          </ul>
-
-          <h2 className="mb-4 text-2xl font-bold">10. Contact</h2>
-
-          <p className="leading-7 text-slate-700">
-            For questions about SPACE, model usage, or interpretation of output
-            files, please contact the project maintainer or open an issue in the
-            associated GitHub repository.
-          </p>
         </div>
       </section>
     </main>
