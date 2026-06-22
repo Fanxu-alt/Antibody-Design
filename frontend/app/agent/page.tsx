@@ -289,7 +289,7 @@ export default function AgentPage() {
       localStorage.setItem("space_target_name", antigenName);
       localStorage.setItem("space_antigen", antigenSequence);
 
-      const response = await fetch(`${API_BASE}/agent/run`, {
+      const response = await fetch(`${API_BASE}/controller/run`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -342,7 +342,7 @@ export default function AgentPage() {
     setChatError("");
 
     try {
-      const response = await fetch(`${API_BASE}/agent/chat`, {
+      const response = await fetch(`${API_BASE}/controller/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
