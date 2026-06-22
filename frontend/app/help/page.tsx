@@ -23,8 +23,7 @@ export default function HelpPage() {
           <h2 className="mb-4 text-2xl font-bold">1. Overview</h2>
 
           <p className="mb-4 leading-7 text-slate-700">
-            Given an antigen
-            amino-acid sequence, the platform can generate CDRH3 candidates,
+            Given an antigen amino-acid sequence, the platform can generate CDRH3 candidates,
             graft them into a heavy-chain scaffold, predict antibody-antigen
             binding probability, evaluate sequence-level developability
             properties, and rank candidates for downstream validation.
