@@ -234,47 +234,7 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <div className="mb-10 rounded-xl bg-slate-100 p-5 text-sm leading-7 text-slate-700">
-            <strong>Recommended candidate profile:</strong>
-            <br />
-            hard filter pass = true
-            <br />
-            low developability risk score
-            <br />
-            risk percentile below 50%
-            <br />
-            high binding probability
-            <br />
-            non-trivial nearest-neighbor distance from known same-antigen
-            antibodies
-          </div>
-
-          <h2 className="mb-4 text-2xl font-bold">7. Full Pipeline Module</h2>
-
-          <p className="mb-4 leading-7 text-slate-700">
-            The Full Pipeline module runs generation, CDRH3 grafting, binding
-            prediction, developability assessment, and candidate ranking in one
-            workflow.
-          </p>
-
-          <h3 className="mb-3 text-xl font-semibold">Required Inputs</h3>
-
-          <ul className="mb-6 list-disc space-y-2 pl-6 text-slate-700">
-            <li>Antigen name</li>
-            <li>Antigen amino-acid sequence</li>
-            <li>Template heavy-chain sequence</li>
-            <li>Template CDRH3 sequence</li>
-            <li>Number of CDRH3 candidates to generate</li>
-          </ul>
-
-          <div className="mb-10 rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm leading-7 text-blue-900">
-            The template CDRH3 sequence must be present inside the template
-            heavy-chain sequence. SPACE replaces the template CDRH3 with each
-            generated CDRH3 before binding prediction and developability
-            assessment.
-          </div>
-
-          <h2 className="mb-4 text-2xl font-bold">8. LLM Controller Module</h2>
+          <h2 className="mb-4 text-2xl font-bold">7. LLM Controller Module</h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             The LLM Controller module performs closed-loop antibody design. It repeatedly
