@@ -145,7 +145,7 @@ export default function AgentPage() {
   const [heavyTemplate, setHeavyTemplate] = useState(DEFAULT_HEAVY);
   const [cdrh3Template, setCdrh3Template] = useState(DEFAULT_CDRH3);
 
-  const [targetCount, setTargetCount] = useState(10);
+  const [targetCount, setTargetCount] = useState(5);
   const [minBindingProbability, setMinBindingProbability] = useState(0.8);
   const [maxRounds, setMaxRounds] = useState(4);
 
@@ -245,7 +245,7 @@ export default function AgentPage() {
     setAntigenSequence(DEFAULT_ANTIGEN);
     setHeavyTemplate(DEFAULT_HEAVY);
     setCdrh3Template(DEFAULT_CDRH3);
-    setTargetCount(10);
+    setTargetCount(5);
     setMinBindingProbability(0.8);
     setMaxRounds(4);
     setSummary("");
@@ -632,7 +632,7 @@ export default function AgentPage() {
                   <input
                     type="number"
                     min={1}
-                    max={10}
+                    max={5}
                     value={maxRounds}
                     onChange={(event) =>
                       setMaxRounds(Number(event.target.value))
