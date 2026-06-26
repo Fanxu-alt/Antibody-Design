@@ -129,41 +129,8 @@ export default function HelpPage() {
             <li>SARS-CoV-2 spike and variants</li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">3. Recommended workflow</h2>
-
-          <div className="mb-6 rounded-xl bg-slate-100 p-6 text-sm leading-7 text-slate-700">
-            <p>
-              <strong>Antigen sequence</strong>
-            </p>
-            <p>↓</p>
-            <p>
-              <strong>Generate</strong> antigen-conditioned CDRH3 candidates
-            </p>
-            <p>↓</p>
-            <p>
-              <strong>Predict Binding</strong> for candidate antibody-antigen
-              pairs
-            </p>
-            <p>↓</p>
-            <p>
-              <strong>Developability</strong> scoring to remove risky candidates
-            </p>
-            <p>↓</p>
-            <p>
-              <strong>Download</strong> ranked candidates for experimental
-              validation
-            </p>
-          </div>
-
-          <div className="mb-10 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-900">
-            <strong>Important:</strong> SPACE provides computational predictions.
-            The final antibody candidates should still be validated
-            experimentally using appropriate assays such as binding assays,
-            expression tests, stability assessment, or functional assays.
-          </div>
-
           <h2 id="generate" className="mb-4 scroll-mt-28 text-2xl font-bold">
-            4. Generate Module
+            3. Generate Module
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
@@ -266,7 +233,7 @@ export default function HelpPage() {
           </p>
 
           <h2 id="predict" className="mb-4 scroll-mt-28 text-2xl font-bold">
-            5. Predict Binding Module
+            4. Predict Binding Module
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
@@ -365,7 +332,7 @@ export default function HelpPage() {
           </p>
 
           <h2 id="developability" className="mb-4 scroll-mt-28 text-2xl font-bold">
-            6. Developability Module
+            5. Developability Module
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
@@ -509,7 +476,7 @@ export default function HelpPage() {
           </div>
 
           <h2 id="llm-guided-design" className="mb-4 scroll-mt-28 text-2xl font-bold">
-            7. LLM-guided Antibody Design Module
+            6. LLM-guided Antibody Design Module
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
@@ -577,7 +544,7 @@ export default function HelpPage() {
             3 to 4 rounds.
           </p>
 
-          <h2 className="mb-4 text-2xl font-bold">8. How to choose final candidates</h2>
+          <h2 className="mb-4 text-2xl font-bold">7. How to choose final candidates</h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             For experimental follow-up, do not select candidates based on only
@@ -632,7 +599,7 @@ export default function HelpPage() {
             </table>
           </div>
 
-          <h2 className="mb-4 text-2xl font-bold">9. Downloadable outputs</h2>
+          <h2 className="mb-4 text-2xl font-bold">8. Downloadable outputs</h2>
 
           <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
             <li>
@@ -661,7 +628,7 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">10. Frequently asked questions</h2>
+          <h2 className="mb-4 text-2xl font-bold">9. Practical Tips</h2>
 
           <div className="space-y-4">
             <div className="rounded-2xl border bg-slate-50 p-5">
