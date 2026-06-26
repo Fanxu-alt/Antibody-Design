@@ -1,4 +1,9 @@
 "use client";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
+
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -57,27 +62,6 @@ const PRIORITY_TARGETS = [
 
 function getTargetDisplayName(target: string) {
   return TARGET_DISPLAY_NAMES[target] || target;
-}
-
-function sortTargets(targets: string[]) {
-  return [...new Set(targets)]
-    .map((target) => String(target))
-    .sort((a, b) => {
-      const ai = PRIORITY_TARGETS.indexOf(a);
-      const bi = PRIORITY_TARGETS.indexOf(b);
-
-      if (ai !== -1 && bi !== -1) return ai - bi;
-      if (ai !== -1) return -1;
-      if (bi !== -1) return 1;
-
-      const aIsSars = a.toLowerCase().includes("sars");
-      const bIsSars = b.toLowerCase().includes("sars");
-
-      if (aIsSars && !bIsSars) return 1;
-      if (!aIsSars && bIsSars) return -1;
-
-      return a.localeCompare(b);
-    });
 }
 
 export default function GeneratePage() {
