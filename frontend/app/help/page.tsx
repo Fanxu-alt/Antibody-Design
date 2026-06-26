@@ -13,8 +13,7 @@ export default function HelpPage() {
 
           <p className="mb-8 text-lg leading-8 text-slate-600">
             SPACE helps you generate antibody CDRH3 candidates, predict antibody-antigen binding, evaluate
-            developability risks, and prioritize candidates for experimental
-            validation.
+            developability risks, and prioritize candidates.
           </p>
 
           <div className="mb-10 rounded-2xl border border-blue-100 bg-blue-50 p-6">
