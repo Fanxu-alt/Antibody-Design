@@ -44,26 +44,6 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   URL.revokeObjectURL(url);
 }
 
-const TARGET_DISPLAY_NAMES: Record<string, string> = {
-  hiv_gp120: "HIV gp120",
-  hiv_gp160: "HIV gp160",
-  influenza_ha: "Influenza hemagglutinin (HA)",
-  neuraminidase: "Influenza neuraminidase (NA)",
-  circumsporozoite: "Plasmodium circumsporozoite protein (CSP)",
-};
-
-const PRIORITY_TARGETS = [
-  "hiv_gp120",
-  "hiv_gp160",
-  "influenza_ha",
-  "neuraminidase",
-  "circumsporozoite",
-];
-
-function getTargetDisplayName(target: string) {
-  return TARGET_DISPLAY_NAMES[target] || target;
-}
-
 export default function GeneratePage() {
   const [targets, setTargets] = useState<string[]>([]);
   const [targetName, setTargetName] = useState("");
