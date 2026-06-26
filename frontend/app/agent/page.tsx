@@ -139,7 +139,7 @@ function SimpleTable({
   );
 }
 
-export default function AgentPage() {
+export default function ControllerPage() {
   const [targets, setTargets] = useState<string[]>([]);
   const [targetsLoading, setTargetsLoading] = useState(true);
   const [targetsError, setTargetsError] = useState("");
@@ -259,7 +259,7 @@ export default function AgentPage() {
     localStorage.setItem("space_antigen", DEFAULT_ANTIGEN);
   }
 
-  function downloadAllAgentResults() {
+  function downloadAllControllerResults() {
     const metadata = [
       {
         target_antigen_name: antigenName,
@@ -287,7 +287,7 @@ export default function AgentPage() {
     }
   }
 
-  async function runAgent() {
+  async function runController() {
     setLoading(true);
     setError("");
     setSummary("");
