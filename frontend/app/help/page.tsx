@@ -317,8 +317,7 @@ export default function HelpPage() {
 
           <p className="mb-4 leading-7 text-slate-700">
             Use this module to identify sequence features that may cause
-            problems during antibody expression, purification, formulation,
-            storage, or therapeutic development.
+            problems during antibody expression, purification, or storage.
           </p>
 
           <div className="mb-6 grid gap-4 md:grid-cols-3">
