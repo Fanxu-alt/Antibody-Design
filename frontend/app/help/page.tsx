@@ -286,43 +286,28 @@ export default function HelpPage() {
                 <tr>
                   <td className="border-b p-4 font-semibold">≥ 0.90</td>
                   <td className="border-b p-4">Very strong computational candidate</td>
-                  <td className="border-b p-4">
-                    Prioritize for developability scoring and experimental
-                    consideration.
-                  </td>
                 </tr>
 
                 <tr>
                   <td className="border-b p-4 font-semibold">0.80 to 0.90</td>
                   <td className="border-b p-4">Good computational candidate</td>
-                  <td className="border-b p-4">
-                    Keep if developability is acceptable.
-                  </td>
                 </tr>
 
                 <tr>
                   <td className="border-b p-4 font-semibold">0.60 to 0.80</td>
                   <td className="border-b p-4">Moderate candidate</td>
-                  <td className="border-b p-4">
-                    Consider only if sequence quality is good or diversity is
-                    important.
-                  </td>
                 </tr>
 
                 <tr>
                   <td className="border-b p-4 font-semibold">&lt; 0.60</td>
                   <td className="border-b p-4">Lower-priority candidate</td>
-                  <td className="border-b p-4">
-                    Usually not selected unless there is a special reason.
-                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <p className="mb-10 leading-7 text-slate-700">
-            Binding prediction alone is not enough. A candidate with high
-            predicted binding may still have poor developability. Therefore,
+            Binding prediction alone is not enough. Therefore,
             high-binding candidates should be checked in the Developability
             module.
           </p>
