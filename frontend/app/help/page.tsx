@@ -43,9 +43,7 @@ export default function HelpPage() {
             </div>
 
             <p className="mt-4 text-sm leading-7 text-blue-900">
-              A good first run is: generate 32 to 100 candidates, predict
-              binding, then use developability scoring to remove candidates with
-              obvious sequence liabilities.
+              
             </p>
           </div>
 
