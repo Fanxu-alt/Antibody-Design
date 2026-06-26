@@ -1,14 +1,13 @@
 "use client";
-import {
-  sortTargets,
-  getTargetDisplayName,
-} from "../components/targetUtils";
-
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import SectionTitle from "../components/SectionTitle";
 import { API_BASE, DEFAULT_ANTIGEN } from "../components/config";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
 
 type GeneratedCandidate = {
   antigen?: string;
