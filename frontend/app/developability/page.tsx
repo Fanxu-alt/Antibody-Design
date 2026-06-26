@@ -1,4 +1,8 @@
 "use client";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -103,7 +107,7 @@ export default function DevelopabilityPage() {
         const loadedTargets = data.targets || [];
 
         if (Array.isArray(loadedTargets) && loadedTargets.length > 0) {
-          const sortedTargets = [...loadedTargets].sort();
+          const sortedTargets = sortTargets(loadedTargets);
           setTargets(sortedTargets);
 
           if (sortedTargets.includes("SARS-CoV2_Beta")) {
@@ -345,7 +349,7 @@ export default function DevelopabilityPage() {
               >
                 {targets.map((target) => (
                   <option key={target} value={target}>
-                    {target}
+                    {getTargetDisplayName(target)}
                   </option>
                 ))}
               </select>
