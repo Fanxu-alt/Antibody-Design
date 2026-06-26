@@ -246,7 +246,7 @@ export default function HelpPage() {
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
                 <li>Target antigen name</li>
                 <li>Antigen sequence</li>
-                <li>Heavy-chain sequence or generated CDRH3 candidates</li>
+                <li>Heavy-chain sequence</li>
               </ul>
             </div>
 
