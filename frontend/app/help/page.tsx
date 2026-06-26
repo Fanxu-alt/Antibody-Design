@@ -331,15 +331,6 @@ export default function HelpPage() {
             </div>
 
             <div className="rounded-2xl border bg-slate-50 p-5">
-              <h3 className="mb-2 font-bold">What to click</h3>
-              <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
-                <li>Use previous binding predictions or manual input</li>
-                <li>Select candidates if needed</li>
-                <li>Click Run Developability Scoring</li>
-              </ul>
-            </div>
-
-            <div className="rounded-2xl border bg-slate-50 p-5">
               <h3 className="mb-2 font-bold">What you get</h3>
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
                 <li>Hard-filter pass or fail</li>
