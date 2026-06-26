@@ -308,7 +308,7 @@ export default function HelpPage() {
           <p className="mb-10 leading-7 text-slate-700">
             Binding prediction alone is not enough. Therefore,
             high-binding candidates should be checked in the Developability
-            module.
+            Module.
           </p>
 
           <h2 id="developability" className="mb-4 scroll-mt-28 text-2xl font-bold">
