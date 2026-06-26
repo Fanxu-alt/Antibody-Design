@@ -502,62 +502,7 @@ export default function HelpPage() {
             If the search gets slow, reduce Desired candidates or Max rounds.
           </p>
 
-          <h2 className="mb-4 text-2xl font-bold">7. How to choose final candidates</h2>
-
-          <p className="mb-4 leading-7 text-slate-700">
-            For experimental follow-up, do not select candidates based on only
-            one number. A practical selection strategy is to combine binding,
-            developability, and sequence diversity.
-          </p>
-
-          <div className="mb-10 overflow-x-auto rounded-2xl border">
-            <table className="w-full border-collapse bg-white text-sm">
-              <thead className="bg-slate-100 text-left">
-                <tr>
-                  <th className="border-b p-4">Criterion</th>
-                  <th className="border-b p-4">Preferred result</th>
-                  <th className="border-b p-4">Why it matters</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr>
-                  <td className="border-b p-4">Binding probability</td>
-                  <td className="border-b p-4">High, preferably ≥ 0.80</td>
-                  <td className="border-b p-4">
-                    Suggests stronger computational antibody-antigen
-                    compatibility.
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border-b p-4">Hard filter</td>
-                  <td className="border-b p-4">Pass</td>
-                  <td className="border-b p-4">
-                    Removes candidates with obvious developability liabilities.
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border-b p-4">Risk score</td>
-                  <td className="border-b p-4">Low</td>
-                  <td className="border-b p-4">
-                    Lower predicted sequence liability.
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="border-b p-4">Diversity or novelty</td>
-                  <td className="border-b p-4">Not identical to existing candidates</td>
-                  <td className="border-b p-4">
-                    Helps avoid testing many nearly identical antibodies.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h2 className="mb-4 text-2xl font-bold">8. Downloadable outputs</h2>
+          <h2 className="mb-4 text-2xl font-bold">7. Downloadable outputs</h2>
 
           <ul className="mb-10 list-disc space-y-2 pl-6 text-slate-700">
             <li>
@@ -586,7 +531,7 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">9. Practical Tips</h2>
+          <h2 className="mb-4 text-2xl font-bold">8. Practical Tips</h2>
 
           <div className="space-y-4">
             <div className="rounded-2xl border bg-slate-50 p-5">
