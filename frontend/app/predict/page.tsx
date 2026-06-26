@@ -87,47 +87,6 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   URL.revokeObjectURL(url);
 }
 
-const TARGET_DISPLAY_NAMES: Record<string, string> = {
-  hiv_gp120: "HIV gp120",
-  hiv_gp160: "HIV gp160",
-  influenza_ha: "Influenza hemagglutinin (HA)",
-  neuraminidase: "Influenza neuraminidase (NA)",
-  circumsporozoite: "Plasmodium circumsporozoite protein (CSP)",
-};
-
-const PRIORITY_TARGETS = [
-  "hiv_gp120",
-  "hiv_gp160",
-  "influenza_ha",
-  "neuraminidase",
-  "circumsporozoite",
-];
-
-function getTargetDisplayName(target: string) {
-  return TARGET_DISPLAY_NAMES[target] || target;
-}
-
-function sortTargets(targets: string[]) {
-  return [...new Set(targets)]
-    .map((target) => String(target))
-    .sort((a, b) => {
-      const ai = PRIORITY_TARGETS.indexOf(a);
-      const bi = PRIORITY_TARGETS.indexOf(b);
-
-      if (ai !== -1 && bi !== -1) return ai - bi;
-      if (ai !== -1) return -1;
-      if (bi !== -1) return 1;
-
-      const aIsSars = a.toLowerCase().includes("sars");
-      const bIsSars = b.toLowerCase().includes("sars");
-
-      if (aIsSars && !bIsSars) return 1;
-      if (!aIsSars && bIsSars) return -1;
-
-      return a.localeCompare(b);
-    });
-}
-
 export default function PredictPage() {
   const [mode, setMode] = useState<PredictionMode>("generated");
 
