@@ -236,7 +236,7 @@ export default function HelpPage() {
           <p className="mb-4 leading-7 text-slate-700">
             Use this module to estimate whether an antibody heavy-chain sequence
             is likely to bind the selected antigen. You can either use generated
-            candidates from the Generate module or paste your own antibody
+            candidates from the Generate Module or paste your own antibody
             sequence manually.
           </p>
 
