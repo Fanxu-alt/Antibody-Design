@@ -651,7 +651,7 @@ export default function ControllerPage() {
                 </button>
 
                 <button
-                  onClick={runAgent}
+                  onClick={runController}
                   disabled={loading || targetsLoading || !antigenName}
                   className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
@@ -659,7 +659,7 @@ export default function ControllerPage() {
                 </button>
 
                 <button
-                  onClick={downloadAllAgentResults}
+                  onClick={downloadAllControllerResults}
                   disabled={
                     !summary &&
                     acceptedRecords.length === 0 &&
