@@ -254,8 +254,7 @@ export default function HelpPage() {
               <h3 className="mb-2 font-bold">What to click</h3>
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
                 <li>Select Generated Candidates or Manual Sequence</li>
-                <li>Select candidates if using generated CDRH3s</li>
-                <li>Click Predict Selected or Predict All</li>
+                <li>Click Predict Selected</li>
               </ul>
             </div>
 
