@@ -18,7 +18,7 @@ export default function HelpPage() {
 
           <div className="mb-10 rounded-2xl border border-blue-100 bg-blue-50 p-6">
             <h2 className="mb-3 text-2xl font-bold text-blue-900">
-              SPACE in 3 Minutes
+              Getting Started
             </h2>
 
             <div className="rounded-xl bg-white p-6 text-sm leading-7 text-slate-700">
@@ -38,8 +38,7 @@ export default function HelpPage() {
                 <strong>Step 5.</strong> Check developability risks.
               </p>
               <p>
-                <strong>Step 6.</strong> Download the best candidates for
-                downstream experimental validation.
+                <strong>Step 6.</strong> Download the best candidates.
               </p>
             </div>
 
