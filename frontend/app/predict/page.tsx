@@ -1,4 +1,8 @@
 "use client";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
 
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
