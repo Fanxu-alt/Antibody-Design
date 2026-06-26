@@ -9,6 +9,10 @@ import {
   DEFAULT_CDRH3,
   DEFAULT_HEAVY,
 } from "../components/config";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
 
 type RecordRow = Record<string, unknown>;
 
@@ -186,20 +190,10 @@ export default function AgentPage() {
           throw new Error("Backend returned an empty target list.");
         }
 
-        const uniqueTargets = Array.from(
-          new Set(loadedTargets.map((target: unknown) => String(target)))
+        const sortedTargets = sortTargets(
+          loadedTargets.map((target: unknown) => String(target))
         );
-
-        const sortedTargets = uniqueTargets.sort((a, b) => {
-          const aIsSars = a.toLowerCase().includes("sars");
-          const bIsSars = b.toLowerCase().includes("sars");
-
-          if (aIsSars && !bIsSars) return -1;
-          if (!aIsSars && bIsSars) return 1;
-
-          return a.localeCompare(b);
-        });
-
+ 
         setTargets(sortedTargets);
 
         const savedTarget = localStorage.getItem("space_target_name");
@@ -547,7 +541,7 @@ export default function AgentPage() {
                 {!targetsLoading &&
                   targets.map((target) => (
                     <option key={target} value={target}>
-                      {target}
+                      {getTargetDisplayName(target)}
                     </option>
                   ))}
               </select>
