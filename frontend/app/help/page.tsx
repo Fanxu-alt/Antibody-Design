@@ -278,7 +278,6 @@ export default function HelpPage() {
                 <tr>
                   <th className="border-b p-4">Binding probability</th>
                   <th className="border-b p-4">Interpretation</th>
-                  <th className="border-b p-4">Suggested action</th>
                 </tr>
               </thead>
 
