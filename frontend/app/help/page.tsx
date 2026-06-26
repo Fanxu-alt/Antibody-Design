@@ -500,8 +500,6 @@ export default function HelpPage() {
 
           <p className="mb-10 leading-7 text-slate-700">
             If the search gets slow, reduce Desired candidates or Max rounds.
-            For a first test on a free CPU backend, use 5 desired candidates and
-            3 to 4 rounds.
           </p>
 
           <h2 className="mb-4 text-2xl font-bold">7. How to choose final candidates</h2>
