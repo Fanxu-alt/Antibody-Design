@@ -516,6 +516,12 @@ export default function AgentPage() {
             title="LLM-guided Antibody Design"
             description="Target-specific closed-loop optimization integrating antigen-conditioned generation, antibody-antigen binding prediction, developability assessment, and language-model-guided result interpretation."
           />
+          <a
+            href="/help#llm-guided-design"
+            className="mb-6 inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+          >
+            Help for LLM-guided Design
+          </a>
 
           <div className="grid gap-8 lg:grid-cols-5">
             <div className="lg:col-span-2">
