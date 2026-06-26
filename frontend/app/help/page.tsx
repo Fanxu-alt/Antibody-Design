@@ -91,8 +91,9 @@ export default function HelpPage() {
             sequence novelty should be prioritized.
           </p>
 
-          <h2 className="mb-4 text-2xl font-bold">4. Generate Module</h2>
-
+          <h2 id="generate" className="mb-4 scroll-mt-28 text-2xl font-bold">
+            4. Generate Module
+          </h2>
           <p className="mb-4 leading-7 text-slate-700">
             The Generate module uses H3-AbSeqVAE to produce antigen-conditioned
             CDRH3 sequences. The model samples from a latent sequence space
@@ -136,7 +137,9 @@ export default function HelpPage() {
             <li>Optional generation metadata</li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">5. Predict Binding Module</h2>
+          <h2 id="predict" className="mb-4 scroll-mt-28 text-2xl font-bold">
+            5. Predict Binding Module
+          </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             The Predict module uses AbAgBinder to estimate the probability of
@@ -181,7 +184,9 @@ export default function HelpPage() {
             Binding probability &lt; 0.50: lower-priority candidate.
           </div>
 
-          <h2 className="mb-4 text-2xl font-bold">6. Developability Module</h2>
+          <h2 id="developability" className="mb-4 scroll-mt-28 text-2xl font-bold">
+            6. Developability Module
+          </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             The Developability module evaluates sequence-derived properties
@@ -234,7 +239,9 @@ export default function HelpPage() {
             </li>
           </ul>
 
-          <h2 className="mb-4 text-2xl font-bold">7. LLM Controller Module</h2>
+          <h2 id="llm-guided-design" className="mb-4 scroll-mt-28 text-2xl font-bold">
+            7. LLM-guided Antibody Design Module
+          </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             The LLM Controller module performs closed-loop antibody design. It repeatedly
