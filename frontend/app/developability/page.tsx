@@ -1,8 +1,4 @@
 "use client";
-import {
-  sortTargets,
-  getTargetDisplayName,
-} from "../components/targetUtils";
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -13,6 +9,10 @@ import {
   DEFAULT_HEAVY,
   formatNumber,
 } from "../components/config";
+import {
+  sortTargets,
+  getTargetDisplayName,
+} from "../components/targetUtils";
 
 type Mode = "predicted" | "manual";
 
@@ -336,6 +336,12 @@ export default function DevelopabilityPage() {
             title="Developability"
             description="Score candidate antibodies using target-specific developability cohorts. You can use previous binding prediction results or enter candidates manually."
           />
+          <a
+            href="/help#developability"
+            className="mb-6 inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+          >
+            Help for Developability
+          </a> 
 
           <div className="mb-8 grid gap-4 md:grid-cols-2">
             <div>
