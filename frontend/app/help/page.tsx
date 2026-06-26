@@ -225,7 +225,7 @@ export default function HelpPage() {
           </div>
 
           <p className="mb-10 leading-7 text-slate-700">
-            After generation, go to the Predict Binding module to estimate which
+            After generation, go to the Predict Binding Module to estimate which
             generated candidates are more likely to bind the antigen.
           </p>
 
