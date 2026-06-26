@@ -230,6 +230,12 @@ export default function GeneratePage() {
             title="Generate"
             description="Generate antigen-conditioned CDRH3 candidates from a selected target and antigen amino-acid sequence."
           />
+          <a
+            href="/help#generate"
+            className="mb-6 inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+          >
+            Help for Generate
+          </a>
 
           <div className="grid gap-8 lg:grid-cols-5">
             <div className="lg:col-span-2">
