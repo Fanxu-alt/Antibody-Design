@@ -436,15 +436,6 @@ export default function HelpPage() {
             </table>
           </div>
 
-          <div className="mb-10 rounded-xl bg-slate-100 p-5 text-sm leading-7 text-slate-700">
-            <strong>Suggested candidate selection rule:</strong>
-            <br />
-            Prefer candidates with high binding probability, hard-filter pass,
-            low developability risk score, and acceptable novelty. Avoid
-            candidates that fail hard filters unless there is a strong
-            experimental reason to keep them.
-          </div>
-
           <h2 id="llm-guided-design" className="mb-4 scroll-mt-28 text-2xl font-bold">
             6. LLM-guided Antibody Design Module
           </h2>
