@@ -12,10 +12,7 @@ export default function HelpPage() {
           </h1>
 
           <p className="mb-8 text-lg leading-8 text-slate-600">
-            This guide is written for experimental biologists who want to use
-            SPACE for antibody design without needing programming, machine
-            learning, or bioinformatics experience. SPACE helps you generate
-            antibody CDRH3 candidates, predict antibody-antigen binding, evaluate
+            SPACE helps you generate antibody CDRH3 candidates, predict antibody-antigen binding, evaluate
             developability risks, and prioritize candidates for experimental
             validation.
           </p>
