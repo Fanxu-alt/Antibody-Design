@@ -200,8 +200,7 @@ export default function HelpPage() {
                   <td className="border-b p-4">Sampling mode</td>
                   <td className="border-b p-4">sample</td>
                   <td className="border-b p-4">
-                    Produces more diverse candidates than deterministic
-                    generation.
+                    Produces more diverse candidates.
                   </td>
                 </tr>
 
