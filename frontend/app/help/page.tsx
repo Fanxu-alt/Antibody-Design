@@ -441,8 +441,7 @@ export default function HelpPage() {
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
-            Use this module when you want SPACE to run the full design loop for
-            you. The system repeatedly generates candidates, predicts binding,
+            The system repeatedly generates candidates, predicts binding,
             checks developability, and keeps candidates that satisfy your
             settings.
           </p>
