@@ -134,9 +134,7 @@ export default function HelpPage() {
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
-            Use this module when you want to create new CDRH3 sequences for a
-            selected antigen. CDRH3 is often important for antigen recognition,
-            so this module is usually the starting point for a new design run.
+             
           </p>
 
           <div className="mb-6 grid gap-4 md:grid-cols-3">
