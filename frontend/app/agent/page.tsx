@@ -32,7 +32,7 @@ type ControllerProgress = {
   target_count?: number;
   evaluated_count?: number;
   current_temperature?: number;
-  current_min_binding_probability?: number;
+  current_min_interaction_probability?: number;
   current_samples_per_round?: number;
   current_sampling_mode?: string;
   selected_records?: RecordRow[];
@@ -150,7 +150,7 @@ export default function ControllerPage() {
   const [cdrh3Template, setCdrh3Template] = useState(DEFAULT_CDRH3);
 
   const [targetCount, setTargetCount] = useState(5);
-  const [minBindingProbability, setMinBindingProbability] = useState(0.8);
+  const [minInteractionProbability, setMinInteractionProbability] = useState(0.8);
   const [maxRounds, setMaxRounds] = useState(4);
 
   const [summary, setSummary] = useState("");
@@ -240,7 +240,7 @@ export default function ControllerPage() {
     setHeavyTemplate(DEFAULT_HEAVY);
     setCdrh3Template(DEFAULT_CDRH3);
     setTargetCount(5);
-    setMinBindingProbability(0.8);
+    setMinInteractionProbability(0.8);
     setMaxRounds(4);
     setSummary("");
     setAcceptedRecords([]);
@@ -264,7 +264,7 @@ export default function ControllerPage() {
       {
         target_antigen_name: antigenName,
         target_count: targetCount,
-        min_binding_probability: minBindingProbability,
+        min_interaction_probability: minInteractionProbability,
         max_rounds: maxRounds,
         summary,
         accepted_count: acceptedRecords.length,
@@ -329,7 +329,7 @@ export default function ControllerPage() {
           heavy_template: heavyTemplate,
           cdrh3_template: cdrh3Template,
           target_count: targetCount,
-          min_binding_probability: minBindingProbability,
+          min_interaction_probability: minInteractionProbability,
           max_rounds: maxRounds,
         }),
       });
@@ -514,7 +514,7 @@ export default function ControllerPage() {
           <SectionTitle
             label="LLM-guided workflow"
             title="LLM-guided Antibody Design"
-            description="Target-specific closed-loop optimization integrating antigen-conditioned generation, antibody-antigen binding prediction, developability assessment, and language-model-guided result interpretation."
+            description="Target-specific closed-loop optimization integrating antigen-conditioned generation, antibody-antigen interaction prediction, developability assessment, and language-model-guided result interpretation."
           />
           <a
             href="/help#llm-guided-design"
@@ -610,16 +610,16 @@ export default function ControllerPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold">
-                    Minimum binding
+                    Minimum interaction
                   </label>
                   <input
                     type="number"
                     min={0}
                     max={1}
                     step={0.05}
-                    value={minBindingProbability}
+                    value={minInteractionProbability}
                     onChange={(event) =>
-                      setMinBindingProbability(Number(event.target.value))
+                      setMinInteractionProbability(Number(event.target.value))
                     }
                     className="w-full rounded-xl border p-3"
                   />
