@@ -13,7 +13,7 @@ export default function HomePage() {
 
           <p className="max-w-4xl text-lg leading-8 text-slate-600">
             SPACE is a sequence-based antibody design platform for
-            antigen-specific CDRH3 generation, antibody-antigen binding
+            antigen-specific CDRH3 generation, antibody-antigen interaction
             prediction, developability-aware ranking, and LLM-guided antibody
             design.
           </p>
@@ -58,7 +58,7 @@ export default function HomePage() {
             >
               <h2 className="text-xl font-bold">Predict</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Predict antibody-antigen binding probability.
+                Predict antibody-antigen interaction probability.
               </p>
             </a>
 
