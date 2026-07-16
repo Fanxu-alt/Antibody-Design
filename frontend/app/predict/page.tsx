@@ -24,8 +24,8 @@ type GeneratedCandidate = {
   temperature?: number;
 };
 
-type BindingResult = {
-  binding_probability?: number;
+type InteractionResult = {
+  interaction_probability?: number;
   logit?: number;
   [key: string]: unknown;
 };
@@ -38,8 +38,8 @@ type PredictionRow = {
   cdrh3: string;
   heavy_chain: string;
   antigen: string;
-  binding_probability?: number;
-  binding_logit?: number;
+  interaction_probability?: number;
+  interaction_logit?: number;
 };
 
 function cleanSequence(seq: string) {
@@ -110,7 +110,7 @@ export default function PredictPage() {
   const [manualHeavy, setManualHeavy] = useState(DEFAULT_HEAVY);
   const [manualAntigen, setManualAntigen] = useState(DEFAULT_ANTIGEN);
 
-  const [singleResult, setSingleResult] = useState<BindingResult | null>(null);
+  const [singleResult, setSingleResult] = useState<InteractionResult | null>(null);
   const [predictionRows, setPredictionRows] = useState<PredictionRow[]>([]);
   const [summary, setSummary] = useState("");
 
@@ -256,18 +256,18 @@ export default function PredictPage() {
       original_rank: row.rank,
       target_name: row.target_name,
       cdrh3: row.cdrh3,
-      binding_probability: row.binding_probability ?? "",
-      binding_logit: row.binding_logit ?? "",
+      interaction_probability: row.interaction_probability ?? "",
+      interaction_logit: row.interaction_logit ?? "",
       heavy_chain: row.heavy_chain,
       antigen: row.antigen,
       prediction_mode: mode,
     }));
 
-    downloadCsv("binding_prediction_results.csv", rows);
+    downloadCsv("interaction_prediction_results.csv", rows);
   }
 
-  async function callPredictBinding(heavySeq: string, antigenSeq: string) {
-    const response = await fetch(`${API_BASE}/predict-binding`, {
+  async function callPredictInteraction(heavySeq: string, antigenSeq: string) {
+    const response = await fetch(`${API_BASE}/predict-interaction`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -312,7 +312,7 @@ export default function PredictPage() {
         if (!heavySeq) throw new Error("Please provide a heavy-chain sequence.");
         if (!antigenSeq) throw new Error("Please provide an antigen sequence.");
 
-        const result = await callPredictBinding(heavySeq, antigenSeq);
+        const result = await callPredictInteraction(heavySeq, antigenSeq);
 
         const rows: PredictionRow[] = [
           {
@@ -321,8 +321,8 @@ export default function PredictPage() {
             cdrh3: "Manual full heavy-chain sequence",
             heavy_chain: heavySeq,
             antigen: antigenSeq,
-            binding_probability: result.binding_probability,
-            binding_logit: result.logit,
+            interaction_probability: result.interaction_probability,
+            interaction_logit: result.logit,
           },
         ];
 
@@ -362,7 +362,7 @@ export default function PredictPage() {
           );
         }
 
-        const result = await callPredictBinding(heavySeq, antigenSeq);
+        const result = await callPredictInteraction(heavySeq, antigenSeq);
 
         rows.push({
           rank: item.index + 1,
@@ -370,14 +370,14 @@ export default function PredictPage() {
           cdrh3,
           heavy_chain: heavySeq,
           antigen: antigenSeq,
-          binding_probability: result.binding_probability,
-          binding_logit: result.logit,
+          interaction_probability: result.interaction_probability,
+          interaction_logit: result.logit,
         });
       }
 
       rows.sort((a, b) => {
-        const left = a.binding_probability ?? -Infinity;
-        const right = b.binding_probability ?? -Infinity;
+        const left = a.interaction_probability ?? -Infinity;
+        const right = b.interaction_probability ?? -Infinity;
         return right - left;
       });
 
@@ -435,7 +435,7 @@ export default function PredictPage() {
           );
         }
 
-        const result = await callPredictBinding(heavySeq, antigenSeq);
+        const result = await callPredictInteraction(heavySeq, antigenSeq);
 
         rows.push({
           rank: index + 1,
@@ -443,14 +443,14 @@ export default function PredictPage() {
           cdrh3,
           heavy_chain: heavySeq,
           antigen: antigenSeq,
-          binding_probability: result.binding_probability,
-          binding_logit: result.logit,
+          interaction_probability: result.interaction_probability,
+          interaction_logit: result.logit,
         });
       }
 
       rows.sort((a, b) => {
-        const left = a.binding_probability ?? -Infinity;
-        const right = b.binding_probability ?? -Infinity;
+        const left = a.interaction_probability ?? -Infinity;
+        const right = b.interaction_probability ?? -Infinity;
         return right - left;
       });
 
@@ -479,7 +479,7 @@ export default function PredictPage() {
         <div className="rounded-3xl border bg-white p-8 shadow-sm">
           <SectionTitle
             label="Module 02"
-            title="Predict Binding"
+            title="Predict Interaction"
             description="Predict antibody-antigen interaction for selected generated CDRH3 candidates or for a manually entered heavy-chain sequence."
           />
           <a
@@ -725,20 +725,20 @@ export default function PredictPage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border bg-white p-6">
-                  <p className="text-sm text-slate-600">Binding Probability</p>
+                  <p className="text-sm text-slate-600">Interaction Probability</p>
                   <p className="mt-2 text-4xl font-bold text-blue-700">
                     {formatNumber(
-                      predictionRows[0]?.binding_probability ??
-                        singleResult?.binding_probability
+                      predictionRows[0]?.interaction_probability ??
+                        singleResult?.interaction_probability
                     )}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border bg-white p-6">
-                  <p className="text-sm text-slate-600">Binding Logit</p>
+                  <p className="text-sm text-slate-600">Interaction Logit</p>
                   <p className="mt-2 text-4xl font-bold text-blue-700">
                     {formatNumber(
-                      predictionRows[0]?.binding_logit ?? singleResult?.logit
+                      predictionRows[0]?.interaction_logit ?? singleResult?.logit
                     )}
                   </p>
                 </div>
@@ -764,9 +764,9 @@ export default function PredictPage() {
                           <th className="border-b p-3">Target</th>
                           <th className="border-b p-3">CDRH3</th>
                           <th className="border-b p-3">
-                            Binding Probability
+                            Interaction Probability
                           </th>
-                          <th className="border-b p-3">Binding Logit</th>
+                          <th className="border-b p-3">Interaction Logit</th>
                         </tr>
                       </thead>
 
@@ -782,10 +782,10 @@ export default function PredictPage() {
                               {row.cdrh3}
                             </td>
                             <td className="border-b p-3">
-                              {formatNumber(row.binding_probability)}
+                              {formatNumber(row.interaction_probability)}
                             </td>
                             <td className="border-b p-3">
-                              {formatNumber(row.binding_logit)}
+                              {formatNumber(row.interaction_logit)}
                             </td>
                           </tr>
                         ))}
