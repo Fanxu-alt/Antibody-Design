@@ -12,7 +12,7 @@ export default function HelpPage() {
           </h1>
 
           <p className="mb-8 text-lg leading-8 text-slate-600">
-            SPACE helps you generate antibody CDRH3 candidates, predict antibody-antigen binding, evaluate
+            SPACE helps you generate antibody CDRH3 candidates, predict antibody-antigen interaction, evaluate
             developability risks, and prioritize candidates.
           </p>
 
@@ -32,7 +32,7 @@ export default function HelpPage() {
                 <strong>Step 3.</strong> Generate CDRH3 candidates.
               </p>
               <p>
-                <strong>Step 4.</strong> Predict antibody-antigen binding.
+                <strong>Step 4.</strong> Predict antibody-antigen interaction.
               </p>
               <p>
                 <strong>Step 5.</strong> Check developability risks.
@@ -74,13 +74,13 @@ export default function HelpPage() {
 
                 <tr>
                   <td className="border-b p-4">
-                    Test whether an antibody sequence may bind an antigen
+                    Test whether an antibody sequence may interact an antigen
                   </td>
                   <td className="border-b p-4 font-semibold text-blue-700">
-                    Predict Binding
+                    Predict Interaction
                   </td>
                   <td className="border-b p-4">
-                    Binding probability and binding logit
+                    Interaction probability and interaction logit
                   </td>
                 </tr>
 
@@ -225,17 +225,17 @@ export default function HelpPage() {
           </div>
 
           <p className="mb-10 leading-7 text-slate-700">
-            After generation, go to the Predict Binding Module to estimate which
-            generated candidates are more likely to bind the antigen.
+            After generation, go to the Predict Interaction Module to estimate which
+            generated candidates are more likely to interact the antigen.
           </p>
 
           <h2 id="predict" className="mb-4 scroll-mt-28 text-2xl font-bold">
-            4. Predict Binding Module
+            4. Predict Interaction Module
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
             Use this module to estimate whether an antibody heavy-chain sequence
-            is likely to bind the selected antigen. You can either use generated
+            is likely to interact the selected antigen. You can either use generated
             candidates from the Generate Module or paste your own antibody
             sequence manually.
           </p>
@@ -261,22 +261,22 @@ export default function HelpPage() {
             <div className="rounded-2xl border bg-slate-50 p-5">
               <h3 className="mb-2 font-bold">What you get</h3>
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
-                <li>Binding probability</li>
-                <li>Binding logit</li>
+                <li>Interaction probability</li>
+                <li>Interaction logit</li>
                 <li>Ranked prediction table</li>
               </ul>
             </div>
           </div>
 
           <h3 className="mb-3 text-xl font-semibold">
-            How to interpret binding probability
+            How to interpret interaction probability
           </h3>
 
           <div className="mb-6 overflow-x-auto rounded-2xl border">
             <table className="w-full border-collapse bg-white text-sm">
               <thead className="bg-slate-100 text-left">
                 <tr>
-                  <th className="border-b p-4">Binding probability</th>
+                  <th className="border-b p-4">Interaction probability</th>
                   <th className="border-b p-4">Interpretation</th>
                 </tr>
               </thead>
@@ -306,8 +306,8 @@ export default function HelpPage() {
           </div>
 
           <p className="mb-10 leading-7 text-slate-700">
-            Binding prediction alone is not enough. Therefore,
-            high-binding candidates should be checked in the Developability
+            Interaction prediction alone is not enough. Therefore,
+            high-interaction candidates should be checked in the Developability
             Module.
           </p>
 
@@ -441,7 +441,7 @@ export default function HelpPage() {
           </h2>
 
           <p className="mb-4 leading-7 text-slate-700">
-            The system repeatedly generates candidates, predicts binding,
+            The system repeatedly generates candidates, predicts interaction,
             checks developability, and keeps candidates that satisfy your
             settings.
           </p>
@@ -453,7 +453,7 @@ export default function HelpPage() {
             <p>↓</p>
             <p>Generate candidate CDRH3 sequences</p>
             <p>↓</p>
-            <p>Predict binding probability</p>
+            <p>Predict interaction probability</p>
             <p>↓</p>
             <p>Evaluate developability</p>
             <p>↓</p>
@@ -482,7 +482,7 @@ export default function HelpPage() {
               <h3 className="mb-2 font-bold">Main settings</h3>
               <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
                 <li>Desired candidates: start with 5</li>
-                <li>Minimum binding: start with 0.80</li>
+                <li>Minimum interaction: start with 0.80</li>
                 <li>Max rounds: start with 3 to 4</li>
               </ul>
             </div>
@@ -510,7 +510,7 @@ export default function HelpPage() {
               candidates from the Generate module.
             </li>
             <li>
-              <strong>binding_prediction_results.csv:</strong> predicted binding
+              <strong>interaction_prediction_results.csv:</strong> predicted interaction
               probabilities and logits.
             </li>
             <li>
