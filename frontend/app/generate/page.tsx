@@ -48,7 +48,7 @@ export default function GeneratePage() {
   const [targetName, setTargetName] = useState("");
 
   const [antigen, setAntigen] = useState("");
-  const [numSamples, setNumSamples] = useState(32);
+  const [numSamples, setNumSamples] = useState(5);
   const [minLen, setMinLen] = useState(8);
   const [sampleMode, setSampleMode] = useState("sample");
   const [temperature, setTemperature] = useState(1.0);
@@ -120,7 +120,7 @@ export default function GeneratePage() {
 
     setTargetName(exampleTarget);
     setAntigen(DEFAULT_ANTIGEN);
-    setNumSamples(32);
+    setNumSamples(5);
     setMinLen(8);
     setSampleMode("sample");
     setTemperature(1.0);
