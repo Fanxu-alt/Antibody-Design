@@ -388,7 +388,7 @@ export default function DevelopabilityPage() {
                 ))}
               </select>
               <p className="mt-2 text-xs text-slate-500">
- 
+                The target is inherited from the latest Predict run when available.
               </p>
             </div>
 
