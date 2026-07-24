@@ -17,18 +17,14 @@ import {
 type Mode = "predicted" | "manual";
 
 type PredictionRow = {
-    rank?: number;
-
-    target_name?: string;
-
-    cdrh3: string;
-
-    heavy_chain: string;
-
-    interaction_probability?: number;
-
-    interaction_logit?: number;
-}
+  rank?: number;
+  target_name?: string;
+  cdrh3: string;
+  heavy_chain: string;
+  antigen?: string;
+  interaction_probability?: number;
+  interaction_logit?: number;
+};
 
 type ManualCandidate = {
   cdrh3: string;
@@ -116,10 +112,12 @@ export default function DevelopabilityPage() {
           const sortedTargets = sortTargets(loadedTargets);
           setTargets(sortedTargets);
 
-          if (sortedTargets.includes("SARS-CoV2_Beta")) {
+          const savedTarget = localStorage.getItem("space_target_name");
+
+          if (savedTarget && sortedTargets.includes(savedTarget)) {
+            setTargetName(savedTarget);
+          } else if (sortedTargets.includes("SARS-CoV2_Beta")) {
             setTargetName("SARS-CoV2_Beta");
-          } else if (sortedTargets.includes("hiv_gp120")) {
-            setTargetName("hiv_gp120");
           } else {
             setTargetName(sortedTargets[0]);
           }
@@ -133,8 +131,13 @@ export default function DevelopabilityPage() {
           "neuraminidase",
           "circumsporozoite",
         ];
-        setTargets(fallbackTargets);
-        setTargetName("SARS-CoV2_Beta");
+        const sortedFallbackTargets = sortTargets(fallbackTargets);
+        setTargets(sortedFallbackTargets);
+        setTargetName(
+          localStorage.getItem("space_target_name") ||
+            sortedFallbackTargets[0] ||
+            "SARS-CoV2_Beta"
+        );
       }
     }
 
@@ -145,21 +148,23 @@ export default function DevelopabilityPage() {
     if (savedPredictionResults) {
       try {
         const parsed = JSON.parse(savedPredictionResults);
-        if (Array.isArray(parsed)) {
-          setPredictionRows(parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const validRows: PredictionRow[] = parsed.filter(
+            (row) =>
+              row &&
+              typeof row.cdrh3 === "string" &&
+              typeof row.heavy_chain === "string"
+          );
 
-          if (
-              parsed.length > 0 &&
-              parsed[0].target_name
-          ) {
-              setTargetName(parsed[0].target_name);
+          setPredictionRows(validRows);
+          setSelectedIndices(validRows.map((_, index) => index));
+          setMode("predicted");
 
-              localStorage.setItem(
-                  "space_target_name",
-                  parsed[0].target_name
-              );
+          const predictionTarget = validRows[0]?.target_name;
+          if (predictionTarget) {
+            setTargetName(predictionTarget);
+            localStorage.setItem("space_target_name", predictionTarget);
           }
-          setSelectedIndices(parsed.map((_, index) => index));
         }
       } catch {
         // Ignore malformed localStorage.
@@ -227,13 +232,13 @@ export default function DevelopabilityPage() {
           cdrh3: cleanSequence(row.cdrh3),
           heavy_chain: cleanSequence(row.heavy_chain),
           binding_probability:
-           typeof row.interaction_probability === "number"
-               ? row.interaction_probability
-               : null,
+            typeof row.interaction_probability === "number"
+              ? row.interaction_probability
+              : null,
           binding_logit:
-            typeof row.interaction_logit === "number" 
-                ? row.interaction_logit 
-                : null,
+            typeof row.interaction_logit === "number"
+              ? row.interaction_logit
+              : null,
         };
       });
     }
@@ -307,10 +312,10 @@ export default function DevelopabilityPage() {
           `Candidates scored: ${data.count ?? candidates.length}`,
           `Input mode: ${
             mode === "predicted"
-              ? "previous binding prediction results"
+              ? "previous interaction prediction results"
               : "manual candidates"
           }`,
-          "Ranking strategy: hard-filter pass first, then higher binding probability if available, then lower developability risk.",
+          "Ranking strategy: hard-filter pass first, then higher interaction probability if available, then lower developability risk.",
         ].join("\n")
       );
     } catch (err) {
@@ -326,8 +331,8 @@ export default function DevelopabilityPage() {
       candidate_name: row.candidate_name,
       target_name: targetName,
       cdrh3: row.cdrh3,
-      binding_probability: row.binding_probability ?? "",
-      binding_logit: row.binding_logit ?? "",
+      interaction_probability: row.binding_probability ?? "",
+      interaction_logit: row.binding_logit ?? "",
       developability_risk_score: row.developability_risk_score ?? "",
       developability_risk_score_percentile:
         row.developability_risk_score_percentile ?? "",
@@ -354,7 +359,7 @@ export default function DevelopabilityPage() {
           <SectionTitle
             label="Module 03"
             title="Developability"
-            description="Score candidate antibodies using target-specific developability cohorts. You can use previous binding prediction results or enter candidates manually."
+            description="Score candidate antibodies using target-specific developability cohorts. You can use previous interaction prediction results or enter candidates manually."
           />
           <a
             href="/help#developability"
@@ -370,7 +375,10 @@ export default function DevelopabilityPage() {
               </label>
               <select
                 value={targetName}
-                onChange={(event) => setTargetName(event.target.value)}
+                onChange={(event) => {
+                  setTargetName(event.target.value);
+                  localStorage.setItem("space_target_name", event.target.value);
+                }}
                 className="w-full rounded-xl border p-3"
               >
                 {targets.map((target) => (
@@ -394,7 +402,7 @@ export default function DevelopabilityPage() {
                     checked={mode === "predicted"}
                     onChange={() => setMode("predicted")}
                   />
-                  Previous binding predictions
+                  Previous interaction predictions
                 </label>
 
                 <label className="flex items-center gap-2 text-sm font-semibold">
@@ -407,6 +415,14 @@ export default function DevelopabilityPage() {
                   Manual candidates
                 </label>
               </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                {predictionRows.length > 0
+                  ? `${predictionRows.length} prediction result${
+                      predictionRows.length === 1 ? "" : "s"
+                    } detected from Predict.`
+                  : "No previous prediction results detected."}
+              </p>
             </div>
           </div>
 
@@ -414,7 +430,7 @@ export default function DevelopabilityPage() {
             <div className="rounded-2xl border">
               <div className="flex items-center justify-between border-b bg-slate-100 px-4 py-3">
                 <h3 className="text-xl font-bold">
-                  Previous Binding Prediction Results
+                  Previous Interaction Prediction Results
                 </h3>
 
                 <label className="flex items-center gap-2 text-sm font-semibold">
@@ -436,8 +452,8 @@ export default function DevelopabilityPage() {
                         <th className="border-b p-3">Select</th>
                         <th className="border-b p-3">Rank</th>
                         <th className="border-b p-3">CDRH3</th>
-                        <th className="border-b p-3">Binding probability</th>
-                        <th className="border-b p-3">Binding logit</th>
+                        <th className="border-b p-3">Interaction probability</th>
+                        <th className="border-b p-3">Interaction logit</th>
                       </tr>
                     </thead>
 
@@ -459,10 +475,10 @@ export default function DevelopabilityPage() {
                             {row.cdrh3}
                           </td>
                           <td className="border-b p-3">
-                            {formatNumber(row.binding_probability)}
+                            {formatNumber(row.interaction_probability)}
                           </td>
                           <td className="border-b p-3">
-                            {formatNumber(row.binding_logit)}
+                            {formatNumber(row.interaction_logit)}
                           </td>
                         </tr>
                       ))}
@@ -471,7 +487,7 @@ export default function DevelopabilityPage() {
                 </div>
               ) : (
                 <div className="p-6 text-sm leading-6 text-slate-500">
-                  No previous binding prediction results found. Go to Predict,
+                  No previous interaction prediction results found. Go to Predict,
                   run Predict Selected or Predict All, then return here. You can
                   also switch to Manual candidates mode.
                 </div>
@@ -562,7 +578,11 @@ export default function DevelopabilityPage() {
           <div className="mt-8 flex flex-wrap gap-3 border-t pt-6">
             <button
               onClick={runDevelopability}
-              disabled={loading || !targetName}
+              disabled={
+                loading ||
+                !targetName ||
+                (mode === "predicted" && selectedIndices.length === 0)
+              }
               className="rounded-full bg-blue-700 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {loading ? "Scoring..." : "Run Developability Scoring"}
@@ -624,7 +644,7 @@ export default function DevelopabilityPage() {
                       <th className="border-b p-3">Rank</th>
                       <th className="border-b p-3">Candidate</th>
                       <th className="border-b p-3">CDRH3</th>
-                      <th className="border-b p-3">Binding probability</th>
+                      <th className="border-b p-3">Interaction probability</th>
                       <th className="border-b p-3">Developability risk</th>
                       <th className="border-b p-3">Risk percentile</th>
                       <th className="border-b p-3">Pass filter</th>
