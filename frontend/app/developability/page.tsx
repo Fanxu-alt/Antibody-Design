@@ -36,8 +36,8 @@ type DevelopabilityResult = {
   candidate_name: string;
   cdrh3: string;
   heavy_chain?: string;
-  binding_probability?: number;
-  binding_logit?: number;
+  interaction_probability?: number;
+  interaction_logit?: number;
   developability_risk_score?: number;
   developability_risk_score_percentile?: number;
   hard_filter_pass?: boolean;
@@ -221,7 +221,7 @@ export default function DevelopabilityPage() {
   function buildCandidatesForRequest() {
     if (mode === "predicted") {
       if (selectedIndices.length === 0) {
-        throw new Error("Please select at least one previous binding prediction.");
+        throw new Error("Please select at least one previous interaction prediction.");
       }
 
       return selectedIndices.map((index) => {
@@ -231,11 +231,11 @@ export default function DevelopabilityPage() {
           candidate_name: `${targetName}_C${index + 1}`,
           cdrh3: cleanSequence(row.cdrh3),
           heavy_chain: cleanSequence(row.heavy_chain),
-          binding_probability:
+          interaction_probability:
             typeof row.interaction_probability === "number"
               ? row.interaction_probability
               : null,
-          binding_logit:
+          interaction_logit:
             typeof row.interaction_logit === "number"
               ? row.interaction_logit
               : null,
@@ -247,8 +247,8 @@ export default function DevelopabilityPage() {
       candidate_name: `${targetName}_C${index + 1}`,
       cdrh3: cleanSequence(candidate.cdrh3),
       heavy_chain: cleanSequence(candidate.heavy_chain),
-      binding_probability: null,
-      binding_logit: null,
+      interaction_probability: null,
+      interaction_logit: null,
     }));
 
     const validCandidates = candidates.filter(
@@ -331,8 +331,8 @@ export default function DevelopabilityPage() {
       candidate_name: row.candidate_name,
       target_name: targetName,
       cdrh3: row.cdrh3,
-      interaction_probability: row.binding_probability ?? "",
-      interaction_logit: row.binding_logit ?? "",
+      interaction_probability: row.interaction_probability ?? "",
+      interaction_logit: row.interaction_logit ?? "",
       developability_risk_score: row.developability_risk_score ?? "",
       developability_risk_score_percentile:
         row.developability_risk_score_percentile ?? "",
@@ -666,7 +666,7 @@ export default function DevelopabilityPage() {
                           {row.cdrh3}
                         </td>
                         <td className="border-b p-3">
-                          {formatNumber(row.binding_probability)}
+                          {formatNumber(row.interaction_probability)}
                         </td>
                         <td className="border-b p-3">
                           {formatNumber(row.developability_risk_score)}
