@@ -289,8 +289,12 @@ export default function PredictPage() {
   function savePredictionRows(rows: PredictionRow[]) {
     setPredictionRows(rows);
     localStorage.setItem("space_prediction_results", JSON.stringify(rows));
-    localStorage.setItem("space_antigen", mode === "manual" ? manualAntigen : antigen);
+    localStorage.setItem(
+      "space_antigen",
+      mode === "manual" ? manualAntigen : antigen
+    );
     localStorage.setItem("space_target_name", targetName);
+    localStorage.setItem("space_prediction_mode", mode);
   }
 
   async function predictSelected() {
@@ -700,6 +704,15 @@ export default function PredictPage() {
             >
               Download CSV
             </button>
+
+            {predictionRows.length > 0 && (
+              <a
+                href="/developability"
+                className="rounded-full bg-emerald-700 px-6 py-3 font-semibold text-white hover:bg-emerald-800"
+              >
+                Continue to Developability →
+              </a>
+            )}
           </div>
 
           {error && (
