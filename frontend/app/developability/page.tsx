@@ -17,12 +17,18 @@ import {
 type Mode = "predicted" | "manual";
 
 type PredictionRow = {
-  rank?: number;
-  cdrh3: string;
-  heavy_chain: string;
-  binding_probability?: number;
-  binding_logit?: number;
-};
+    rank?: number;
+
+    target_name?: string;
+
+    cdrh3: string;
+
+    heavy_chain: string;
+
+    interaction_probability?: number;
+
+    interaction_logit?: number;
+}
 
 type ManualCandidate = {
   cdrh3: string;
@@ -141,6 +147,18 @@ export default function DevelopabilityPage() {
         const parsed = JSON.parse(savedPredictionResults);
         if (Array.isArray(parsed)) {
           setPredictionRows(parsed);
+
+          if (
+              parsed.length > 0 &&
+              parsed[0].target_name
+          ) {
+              setTargetName(parsed[0].target_name);
+
+              localStorage.setItem(
+                  "space_target_name",
+                  parsed[0].target_name
+              );
+          }
           setSelectedIndices(parsed.map((_, index) => index));
         }
       } catch {
@@ -209,11 +227,13 @@ export default function DevelopabilityPage() {
           cdrh3: cleanSequence(row.cdrh3),
           heavy_chain: cleanSequence(row.heavy_chain),
           binding_probability:
-            typeof row.binding_probability === "number"
-              ? row.binding_probability
-              : null,
+           typeof row.interaction_probability === "number"
+               ? row.interaction_probability
+               : null,
           binding_logit:
-            typeof row.binding_logit === "number" ? row.binding_logit : null,
+            typeof row.interaction_logit === "number" 
+                ? row.interaction_logit 
+                : null,
         };
       });
     }
