@@ -348,9 +348,8 @@ export default function PredictPage() {
           heavySeq,
           antigenSeq,
           cdrh3,
-          `${targetName}_C${item.index + 1}`
+          `${targetName}_Manual_1`
         );
-      
         const rows: PredictionRow[] = [
           {
             rank: 1,
@@ -405,7 +404,7 @@ export default function PredictPage() {
           heavySeq,
           antigenSeq,
           cdrh3,
-          `${targetName}_C${index + 1}`
+          `${targetName}_C${item.index + 1}`
         );
 
         rows.push({
@@ -492,7 +491,7 @@ export default function PredictPage() {
           heavy_chain: heavySeq,
           antigen: antigenSeq,
           interaction_probability: result.interaction_probability,
-          interaction_logit: result.logit,
+          interaction_logit: result.interaction_logit ?? result.logit,
         });
       }
 
@@ -817,7 +816,9 @@ export default function PredictPage() {
                   <p className="text-sm text-slate-600">Interaction Logit</p>
                   <p className="mt-2 text-4xl font-bold text-blue-700">
                     {formatNumber(
-                      predictionRows[0]?.interaction_logit ?? singleResult?.logit
+                      predictionRows[0]?.interaction_logit ??
+                      singleResult?.interaction_logit ??
+                      singleResult?.logit
                     )}
                   </p>
                 </div>
