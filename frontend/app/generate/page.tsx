@@ -360,7 +360,7 @@ export default function GeneratePage() {
                 >
                   Load example
                 </button>
-
+              
                 <button
                   onClick={runGenerate}
                   disabled={loading || antigen.trim().length === 0 || !targetName}
@@ -368,7 +368,7 @@ export default function GeneratePage() {
                 >
                   {loading ? "Generating..." : "Generate CDRH3"}
                 </button>
-
+              
                 <button
                   onClick={downloadGeneratedResults}
                   disabled={results.length === 0}
@@ -376,6 +376,15 @@ export default function GeneratePage() {
                 >
                   Download CSV
                 </button>
+              
+                {results.length > 0 && (
+                  <a
+                    href="/predict"
+                    className="rounded-full bg-emerald-700 px-6 py-3 font-semibold text-white hover:bg-emerald-800"
+                  >
+                    Continue to Predict →
+                  </a>
+                )}
               </div>
 
               {error && (
