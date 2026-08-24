@@ -26,7 +26,9 @@ type GeneratedCandidate = {
 
 type InteractionResult = {
   interaction_probability?: number;
+  interaction_logit?: number;
   logit?: number;
+  predicted_label?: number;
   [key: string]: unknown;
 };
 
@@ -107,6 +109,7 @@ export default function PredictPage() {
   const [templateCdrh3, setTemplateCdrh3] = useState(DEFAULT_CDRH3);
   const [antigen, setAntigen] = useState(DEFAULT_ANTIGEN);
 
+  const [manualCdrh3, setManualCdrh3] = useState(DEFAULT_CDRH3);
   const [manualHeavy, setManualHeavy] = useState(DEFAULT_HEAVY);
   const [manualAntigen, setManualAntigen] = useState(DEFAULT_ANTIGEN);
 
@@ -240,6 +243,8 @@ export default function PredictPage() {
     setTemplateHeavy(DEFAULT_HEAVY);
     setTemplateCdrh3(DEFAULT_CDRH3);
     setAntigen(DEFAULT_ANTIGEN);
+    
+    setManualCdrh3(DEFAULT_CDRH3);
     setManualHeavy(DEFAULT_HEAVY);
     setManualAntigen(DEFAULT_ANTIGEN);
     setSingleResult(null);
@@ -266,23 +271,30 @@ export default function PredictPage() {
     downloadCsv("interaction_prediction_results.csv", rows);
   }
 
-  async function callPredictInteraction(heavySeq: string, antigenSeq: string) {
+  async function callPredictInteraction(
+    heavySeq: string,
+    antigenSeq: string,
+    cdrh3: string,
+    candidateName?: string
+  ) {
     const response = await fetch(`${API_BASE}/predict-interaction`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        heavy_seq: heavySeq,
-        antigen_seq: antigenSeq,
+        candidate_name: candidateName || null,
+        cdrh3: cleanSequence(cdrh3),
+        heavy_seq: cleanSequence(heavySeq),
+        antigen_seq: cleanSequence(antigenSeq),
       }),
     });
-
+  
     if (!response.ok) {
       const text = await response.text();
       throw new Error(`API error: ${response.status} ${text}`);
     }
-
+  
     return response.json();
   }
 
@@ -310,38 +322,61 @@ export default function PredictPage() {
       }
 
       if (mode === "manual") {
+        const cdrh3 = cleanSequence(manualCdrh3);
         const heavySeq = cleanSequence(manualHeavy);
         const antigenSeq = cleanSequence(manualAntigen);
-
-        if (!heavySeq) throw new Error("Please provide a heavy-chain sequence.");
-        if (!antigenSeq) throw new Error("Please provide an antigen sequence.");
-
-        const result = await callPredictInteraction(heavySeq, antigenSeq);
-
+      
+        if (!cdrh3) {
+          throw new Error("Please provide a CDRH3 sequence.");
+        }
+      
+        if (!heavySeq) {
+          throw new Error("Please provide a heavy-chain sequence.");
+        }
+      
+        if (!antigenSeq) {
+          throw new Error("Please provide an antigen sequence.");
+        }
+      
+        if (!heavySeq.includes(cdrh3)) {
+          throw new Error(
+            "The provided CDRH3 sequence was not found inside the heavy-chain sequence."
+          );
+        }
+      
+        const result = await callPredictInteraction(
+          heavySeq,
+          antigenSeq,
+          cdrh3,
+          `${targetName}_C${item.index + 1}`
+        );
+      
         const rows: PredictionRow[] = [
           {
             rank: 1,
             target_name: targetName,
-            cdrh3: "Manual full heavy-chain sequence",
+            cdrh3,
             heavy_chain: heavySeq,
             antigen: antigenSeq,
             interaction_probability: result.interaction_probability,
-            interaction_logit: result.logit,
+            interaction_logit: result.interaction_logit ?? result.logit,
           },
         ];
-
+      
         setSingleResult(result);
         savePredictionRows(rows);
+      
         setSummary(
           [
             "Prediction mode: Manual Sequence",
             `Target: ${targetName}`,
             "Predicted sequences: 1",
+            `CDRH3 length: ${cdrh3.length}`,
             `Heavy-chain length: ${heavySeq.length}`,
             `Antigen length: ${antigenSeq.length}`,
           ].join("\n")
         );
-
+      
         return;
       }
 
@@ -366,7 +401,12 @@ export default function PredictPage() {
           );
         }
 
-        const result = await callPredictInteraction(heavySeq, antigenSeq);
+        const result = await callPredictInteraction(
+          heavySeq,
+          antigenSeq,
+          cdrh3,
+          `${targetName}_C${index + 1}`
+        );
 
         rows.push({
           rank: item.index + 1,
@@ -375,7 +415,7 @@ export default function PredictPage() {
           heavy_chain: heavySeq,
           antigen: antigenSeq,
           interaction_probability: result.interaction_probability,
-          interaction_logit: result.logit,
+          interaction_logit: result.interaction_logit ?? result.logit,
         });
       }
 
@@ -439,8 +479,12 @@ export default function PredictPage() {
           );
         }
 
-        const result = await callPredictInteraction(heavySeq, antigenSeq);
-
+        const result = await callPredictInteraction(
+          heavySeq,
+          antigenSeq,
+          cdrh3,
+          `${targetName}_C${index + 1}`
+        );
         rows.push({
           rank: index + 1,
           target_name: candidate.target_name || targetName,
@@ -653,27 +697,49 @@ export default function PredictPage() {
           )}
 
           {mode === "manual" && (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-semibold">
-                  Heavy-chain Sequence
+                  CDRH3 Sequence
                 </label>
-                <textarea
-                  className="h-52 w-full rounded-xl border p-4 font-mono text-sm"
-                  value={manualHeavy}
-                  onChange={(event) => setManualHeavy(event.target.value)}
+          
+                <input
+                  className="w-full rounded-xl border p-3 font-mono text-sm"
+                  value={manualCdrh3}
+                  onChange={(event) => setManualCdrh3(event.target.value)}
+                  placeholder="Enter the CDRH3 sequence contained in the heavy chain"
                 />
+          
+                <p className="mt-2 text-xs text-slate-500">
+                  This CDRH3 should correspond to the CDRH3 region of the heavy-chain
+                  sequence below and will be passed to the Developability module.
+                </p>
               </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold">
-                  Antigen Sequence
-                </label>
-                <textarea
-                  className="h-52 w-full rounded-xl border p-4 font-mono text-sm"
-                  value={manualAntigen}
-                  onChange={(event) => setManualAntigen(event.target.value)}
-                />
+          
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Heavy-chain Sequence
+                  </label>
+          
+                  <textarea
+                    className="h-52 w-full rounded-xl border p-4 font-mono text-sm"
+                    value={manualHeavy}
+                    onChange={(event) => setManualHeavy(event.target.value)}
+                  />
+                </div>
+          
+                <div>
+                  <label className="mb-2 block text-sm font-semibold">
+                    Antigen Sequence
+                  </label>
+          
+                  <textarea
+                    className="h-52 w-full rounded-xl border p-4 font-mono text-sm"
+                    value={manualAntigen}
+                    onChange={(event) => setManualAntigen(event.target.value)}
+                  />
+                </div>
               </div>
             </div>
           )}
